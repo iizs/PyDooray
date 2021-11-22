@@ -1,6 +1,7 @@
 import requests
 import dooray.DoorayObjects
 import dooray.Member
+import dooray.IncomingHook
 from .DoorayExceptions import BadHttpResponseStatusCode
 
 DEFAULT_ENDPOINT = "https://api.dooray.com"
@@ -33,7 +34,7 @@ class Dooray:
         else:
             kwargs['headers'] = self._request_header
 
-        resp = requests.request(method, url, **kwargs)
+        resp = requests.request(method, f'{self._endpoint}{url}', **kwargs)
 
         if resp.status_code != 200:
             raise BadHttpResponseStatusCode(resp)
@@ -50,6 +51,17 @@ class Dooray:
         page=0,
         size=20
     ):
+        """
+
+        :param name:
+        :param user_code:
+        :param user_code_exact:
+        :param id_provider_user_id:
+        :param external_emails:
+        :param page:
+        :param size:
+        :return:
+        """
         params = {}
         if name is not None:
             params['name'] = name
@@ -69,7 +81,16 @@ class Dooray:
         if size is not None:
             params['size'] = size
 
-        resp = self._request('GET', f'{self._endpoint}/common/v1/members', params=params)
+        resp = self._request('GET', f'/common/v1/members', params=params)
 
         return dooray.DoorayObjects.DoorayListResponse(resp.json(), dooray.Member.Member, page=page, size=size)
 
+    def get_incoming_hook(self, incoming_hook_id):
+        """
+        https://hook.dooray.com/services/<?>/<incoming_hook_id>/<?>
+        :param incoming_hook_id:
+        :return:
+        """
+        resp = self._request('GET', f'/common/v1/incoming-hooks/{incoming_hook_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.IncomingHook.IncomingHook)

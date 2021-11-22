@@ -10,9 +10,10 @@ class ResponseHeader:
 
 
 class DoorayResponse:
-    def __init__(self, data):
+    def __init__(self, data, obj=None):
         self.header = ResponseHeader(data['header'])
-        self.result = None
+        if obj is not None:
+            self.result = obj(data['result'])
 
     def __repr__(self):
         return f'{{ header: {self.header}, result: {self.result} }}'
