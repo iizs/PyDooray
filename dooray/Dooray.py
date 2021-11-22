@@ -2,6 +2,7 @@ import requests
 import dooray.DoorayObjects
 import dooray.Member
 import dooray.IncomingHook
+import dooray.Project
 from .DoorayExceptions import BadHttpResponseStatusCode
 
 DEFAULT_ENDPOINT = "https://api.dooray.com"
@@ -94,3 +95,13 @@ class Dooray:
         resp = self._request('GET', f'/common/v1/incoming-hooks/{incoming_hook_id}')
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.IncomingHook.IncomingHook)
+
+    def get_project(self, project_id):
+        """
+
+        :param project_id:
+        :return:
+        """
+        resp = self._request('GET', f'/project/v1/projects/{project_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Project)

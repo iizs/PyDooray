@@ -5,8 +5,8 @@ class ResponseHeader:
         self.result_message = data['resultMessage']
 
     def __repr__(self):
-        return f'{{ result_code: {self.result_code}, result_message: \'{self.result_message}\',' \
-               f' is_successful: {self.is_successful} }}'
+        return f"{{ 'result_code': {self.result_code}, 'result_message': '{self.result_message}'," \
+               f"'is_successful': {self.is_successful} }}"
 
 
 class DoorayResponse:
@@ -16,7 +16,7 @@ class DoorayResponse:
             self.result = obj(data['result'])
 
     def __repr__(self):
-        return f'{{ header: {self.header}, result: {self.result} }}'
+        return f"{{ 'header': {self.header}, 'result': {self.result} }}"
 
 
 class DoorayListResponse(DoorayResponse):
@@ -30,5 +30,5 @@ class DoorayListResponse(DoorayResponse):
             self.result.append(obj(e))
 
     def __repr__(self):
-        return f'{{ header: {self.header}, result: {[e for e in self.result]}, ' \
-               f'total_count: {self.total_count}, page: {self.page}, size: {self.size} }}'
+        return f"{{ 'header': {self.header}, 'result': {[e for e in self.result]}, " \
+               f"'total_count': {self.total_count}, 'page': {self.page}, 'size': {self.size} }}"
