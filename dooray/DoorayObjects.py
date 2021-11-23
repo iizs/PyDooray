@@ -32,3 +32,11 @@ class DoorayListResponse(DoorayResponse):
     def __repr__(self):
         return f"{{ 'header': {self.header}, 'result': {[e for e in self.result]}, " \
                f"'total_count': {self.total_count}, 'page': {self.page}, 'size': {self.size} }}"
+
+
+class Relation:
+    def __init__(self, data):
+        self.id = data['id']
+
+    def __repr__(self):
+        return f"{{ 'id': '{self.id}' }}"

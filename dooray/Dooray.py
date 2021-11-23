@@ -105,3 +105,25 @@ class Dooray:
         resp = self._request('GET', f'/project/v1/projects/{project_id}')
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Project)
+
+    def get_project_workflows(self, project_id):
+        """
+
+        :param project_id:
+        :return:
+        """
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/workflows')
+
+        return dooray.DoorayObjects.DoorayListResponse(resp.json(), dooray.Project.Workflow)
+
+    def get_project_email_address(self, project_id, email_address_id):
+        """
+
+        :param project_id:
+        :param email_address_id:
+        :return:
+        """
+
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/email-addresses/{email_address_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.EmailAddress)

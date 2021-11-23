@@ -1,3 +1,6 @@
+import dooray.DoorayObjects
+
+
 class IncomingHook:
     def __init__(self, data):
         self.id = data['id']
@@ -6,7 +9,7 @@ class IncomingHook:
         self.url = data['url']
         self.projects = []
         for e in data['projects']:
-            self.projects.append({'id': e['id']})
+            self.projects.append(dooray.DoorayObjects.Relation(e))
         # TODO There exists unknown property, 'channels': []. Need to wait for the update of API document
 
     def __repr__(self):
