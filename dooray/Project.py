@@ -46,10 +46,20 @@ class Workflow:
 
 class EmailAddress:
     def __init__(self, data):
-        print(data)
         self.id = data['id']
         self.name = data['name']
         self.email_address = data['emailAddress']
 
     def __repr__(self):
         return f"{{ 'id': '{self.id}', 'name': '{self.name}', 'email_address': '{self.email_address}' }}"
+
+
+class Tag:
+    def __init__(self, data):
+        print(data)
+        self.id = data['id']
+        self.name = data['name']
+        self.color = data['color']
+
+    def __repr__(self):
+        return f"{{ 'id': '{self.id}', 'name': '{self.name}', 'email_address': '{self.color}' }}"

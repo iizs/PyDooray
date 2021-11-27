@@ -127,3 +127,16 @@ class Dooray:
         resp = self._request('GET', f'/project/v1/projects/{project_id}/email-addresses/{email_address_id}')
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.EmailAddress)
+
+    def get_project_tag(self, project_id, tag_id):
+        """
+
+        :param project_id:
+        :param tag_id:
+        :return:
+        """
+
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/tags')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Tag)
+
