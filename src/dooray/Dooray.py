@@ -128,6 +128,26 @@ class Dooray:
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.EmailAddress)
 
+    def create_project_tag(self, project_id, name=None, color=None):
+        """
+
+        :param project_id:
+        :param name:
+        :param color:
+        :return:
+        """
+        assert name is not None and isinstance(name, str), name
+        assert color is not None and isinstance(color, str), color
+
+        data = {
+            'name': name,
+            'color' : color,
+        }
+
+        resp = self._request('POST', f'/project/v1/projects/{project_id}/tags', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+
     def get_project_tag(self, project_id, tag_id):
         """
 
@@ -136,7 +156,7 @@ class Dooray:
         :return:
         """
 
-        resp = self._request('GET', f'/project/v1/projects/{project_id}/tags')
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/tags/{tag_id}')
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Tag)
 
