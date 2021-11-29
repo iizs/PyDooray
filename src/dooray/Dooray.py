@@ -3,6 +3,7 @@ import dooray.DoorayObjects
 import dooray.Member
 import dooray.IncomingHook
 import dooray.Project
+import dooray.Messenger
 from .DoorayExceptions import BadHttpResponseStatusCode
 
 DEFAULT_ENDPOINT = "https://api.dooray.com"
@@ -160,3 +161,43 @@ class Dooray:
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Tag)
 
+    def get_messenger_channels(self):
+        """
+
+        :return:
+        """
+
+        resp = self._request('GET', f'/messenger/v1/channels')
+
+        return dooray.DoorayObjects.DoorayListResponse(resp.json(), dooray.Messenger.Channel, size=None)
+
+    def send_direct_message(self, member_id, text):
+        """
+
+        :param member_id:
+        :param text:
+        :return:
+        """
+        data = {
+            'text': text,
+            'organizationMemberId': member_id,
+        }
+
+        resp = self._request('POST', f'/messenger/v1/channels/direct-send', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())
+
+    def send_channel_message(self, channel_id, text):
+        """
+
+        :param channel_id:
+        :param text:
+        :return:
+        """
+        data = {
+            'text': text,
+        }
+
+        resp = self._request('POST', f'/messenger/v1/channels/{channel_id}/logs', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())

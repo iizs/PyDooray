@@ -28,6 +28,8 @@ class DoorayListResponse(DoorayResponse):
         self.result = []
         for e in data['result']:
             self.result.append(obj(e))
+        if self.size is None:
+            self.size = self.total_count
 
     def __repr__(self):
         return f"{{ 'header': {self.header}, 'result': {[e for e in self.result]}, " \
