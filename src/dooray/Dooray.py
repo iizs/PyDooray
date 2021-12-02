@@ -230,3 +230,47 @@ class DoorayMessenger(DoorayBase):
         resp = self._request('POST', f'/messenger/v1/channels/{channel_id}/logs', json=data)
 
         return dooray.DoorayObjects.DoorayResponse(resp.json())
+
+    def join_channel(self, channel_id, member_ids):
+        """
+
+        :param channel_id:
+        :param member_ids:
+        :return:
+        """
+        member_id_list = []
+        if isinstance(member_ids, str):
+            member_id_list.append(member_ids)
+        elif isinstance(member_ids, list):
+            member_id_list.extend(member_ids)
+        else:
+            assert False, member_ids
+        data = {
+            'memberIds': member_id_list,
+        }
+
+        resp = self._request('POST', f'/messenger/v1/channels/{channel_id}/members/join', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())
+
+    def leave_channel(self, channel_id, member_ids):
+        """
+
+        :param channel_id:
+        :param member_ids:
+        :return:
+        """
+        member_id_list = []
+        if isinstance(member_ids, str):
+            member_id_list.append(member_ids)
+        elif isinstance(member_ids, list):
+            member_id_list.extend(member_ids)
+        else:
+            assert False, member_ids
+        data = {
+            'memberIds': member_id_list,
+        }
+
+        resp = self._request('POST', f'/messenger/v1/channels/{channel_id}/members/leave', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())
