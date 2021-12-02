@@ -9,15 +9,16 @@ from .DoorayExceptions import BadHttpResponseStatusCode
 DEFAULT_ENDPOINT = "https://api.dooray.com"
 
 
-class Dooray:
+class DoorayBase:
     """
-    This is the main class you instantiate to access the Dooray! API
-    """
+        This is the base class to access Dooray! API
+        """
+
     def __init__(
-        self,
-        token=None,
-        endpoint=DEFAULT_ENDPOINT,
-        user_agent="PyDooray/Python",
+            self,
+            token=None,
+            endpoint=DEFAULT_ENDPOINT,
+            user_agent="PyDooray/Python",
     ):
         assert token is not None and isinstance(token, str), token
         assert endpoint is not None and isinstance(endpoint, str), endpoint
@@ -42,6 +43,20 @@ class Dooray:
             raise BadHttpResponseStatusCode(resp)
 
         return resp
+
+
+class Dooray(DoorayBase):
+    """
+    This is the main class you instantiate to access the Dooray! API
+    """
+    def __init__(
+        self,
+        token=None,
+        endpoint=DEFAULT_ENDPOINT,
+        user_agent="PyDooray/Python",
+    ):
+        super().__init__(token, endpoint, user_agent)
+        self.messenger = DoorayMessenger(token, endpoint, user_agent)
 
     def get_members(
         self,
@@ -161,7 +176,21 @@ class Dooray:
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Tag)
 
-    def get_messenger_channels(self):
+
+class DoorayMessenger(DoorayBase):
+    """
+        This is the class to access the Dooray! Messenger API
+        """
+
+    def __init__(
+            self,
+            token=None,
+            endpoint=DEFAULT_ENDPOINT,
+            user_agent="PyDooray/Python",
+    ):
+        super().__init__(token, endpoint, user_agent)
+
+    def get_channels(self):
         """
 
         :return:
