@@ -57,6 +57,7 @@ class Dooray(DoorayBase):
     ):
         super().__init__(token, endpoint, user_agent)
         self.messenger = DoorayMessenger(token, endpoint, user_agent)
+        self.project = DoorayProject(token, endpoint, user_agent)
 
     def get_members(
         self,
@@ -111,70 +112,6 @@ class Dooray(DoorayBase):
         resp = self._request('GET', f'/common/v1/incoming-hooks/{incoming_hook_id}')
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.IncomingHook.IncomingHook)
-
-    def get_project(self, project_id):
-        """
-
-        :param project_id:
-        :return:
-        """
-        resp = self._request('GET', f'/project/v1/projects/{project_id}')
-
-        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Project)
-
-    def get_project_workflows(self, project_id):
-        """
-
-        :param project_id:
-        :return:
-        """
-        resp = self._request('GET', f'/project/v1/projects/{project_id}/workflows')
-
-        return dooray.DoorayObjects.DoorayListResponse(resp.json(), dooray.Project.Workflow)
-
-    def get_project_email_address(self, project_id, email_address_id):
-        """
-
-        :param project_id:
-        :param email_address_id:
-        :return:
-        """
-
-        resp = self._request('GET', f'/project/v1/projects/{project_id}/email-addresses/{email_address_id}')
-
-        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.EmailAddress)
-
-    def create_project_tag(self, project_id, name=None, color=None):
-        """
-
-        :param project_id:
-        :param name:
-        :param color:
-        :return:
-        """
-        assert name is not None and isinstance(name, str), name
-        assert color is not None and isinstance(color, str), color
-
-        data = {
-            'name': name,
-            'color' : color,
-        }
-
-        resp = self._request('POST', f'/project/v1/projects/{project_id}/tags', json=data)
-
-        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
-
-    def get_project_tag(self, project_id, tag_id):
-        """
-
-        :param project_id:
-        :param tag_id:
-        :return:
-        """
-
-        resp = self._request('GET', f'/project/v1/projects/{project_id}/tags/{tag_id}')
-
-        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Tag)
 
 
 class DoorayMessenger(DoorayBase):
@@ -296,3 +233,81 @@ class DoorayMessenger(DoorayBase):
         resp = self._request('POST', f'/messenger/v1/channels', params=params, json=data)
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+
+
+class DoorayProject(DoorayBase):
+    """
+        This is the class to access the Dooray! Project API
+        """
+
+    def __init__(
+            self,
+            token=None,
+            endpoint=DEFAULT_ENDPOINT,
+            user_agent="PyDooray/Python",
+    ):
+        super().__init__(token, endpoint, user_agent)
+
+    def get(self, project_id):
+        """
+
+        :param project_id:
+        :return:
+        """
+        resp = self._request('GET', f'/project/v1/projects/{project_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Project)
+
+    def get_workflows(self, project_id):
+        """
+
+        :param project_id:
+        :return:
+        """
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/workflows')
+
+        return dooray.DoorayObjects.DoorayListResponse(resp.json(), dooray.Project.Workflow)
+
+    def get_email_address(self, project_id, email_address_id):
+        """
+
+        :param project_id:
+        :param email_address_id:
+        :return:
+        """
+
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/email-addresses/{email_address_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.EmailAddress)
+
+    def create_tag(self, project_id, name=None, color=None):
+        """
+
+        :param project_id:
+        :param name:
+        :param color:
+        :return:
+        """
+        assert name is not None and isinstance(name, str), name
+        assert color is not None and isinstance(color, str), color
+
+        data = {
+            'name': name,
+            'color' : color,
+        }
+
+        resp = self._request('POST', f'/project/v1/projects/{project_id}/tags', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+
+    def get_tag(self, project_id, tag_id):
+        """
+
+        :param project_id:
+        :param tag_id:
+        :return:
+        """
+
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/tags/{tag_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Tag)
