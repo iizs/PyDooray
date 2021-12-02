@@ -190,6 +190,17 @@ class DoorayMessenger(DoorayBase):
     ):
         super().__init__(token, endpoint, user_agent)
 
+    @staticmethod
+    def _get_member_id_list(member_ids):
+        member_id_list = []
+        if isinstance(member_ids, str):
+            member_id_list.append(member_ids)
+        elif isinstance(member_ids, list):
+            member_id_list.extend(member_ids)
+        else:
+            assert False, member_ids
+        return member_id_list
+
     def get_channels(self):
         """
 
@@ -238,15 +249,8 @@ class DoorayMessenger(DoorayBase):
         :param member_ids:
         :return:
         """
-        member_id_list = []
-        if isinstance(member_ids, str):
-            member_id_list.append(member_ids)
-        elif isinstance(member_ids, list):
-            member_id_list.extend(member_ids)
-        else:
-            assert False, member_ids
         data = {
-            'memberIds': member_id_list,
+            'memberIds': DoorayMessenger._get_member_id_list(member_ids),
         }
 
         resp = self._request('POST', f'/messenger/v1/channels/{channel_id}/members/join', json=data)
@@ -260,17 +264,35 @@ class DoorayMessenger(DoorayBase):
         :param member_ids:
         :return:
         """
-        member_id_list = []
-        if isinstance(member_ids, str):
-            member_id_list.append(member_ids)
-        elif isinstance(member_ids, list):
-            member_id_list.extend(member_ids)
-        else:
-            assert False, member_ids
         data = {
-            'memberIds': member_id_list,
+            'memberIds': DoorayMessenger._get_member_id_list(member_ids),
         }
 
         resp = self._request('POST', f'/messenger/v1/channels/{channel_id}/members/leave', json=data)
 
         return dooray.DoorayObjects.DoorayResponse(resp.json())
+
+    def create_channel(self, title, member_ids, id_type='memberId', channel_type='private', capacity=100):
+        """
+
+        :param title:
+        :param channel_type:
+        :param member_ids:
+        :param id_type:
+        :param capacity:
+        :return:
+        """
+        # TODO Creating 'private' channel with the same name and the same member do not return CHANNEL_ALREADY_EXISTS_ERROR(-300101)
+        # TODO Creating 'direct' channel returns HTTP status code 500
+        data = {
+            'memberIds': DoorayMessenger._get_member_id_list(member_ids),
+            'capacity': capacity,
+            'type': channel_type,
+            'title':title,
+        }
+        params = {
+            'idType': id_type,
+        }
+        resp = self._request('POST', f'/messenger/v1/channels', params=params, json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
