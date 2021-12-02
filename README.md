@@ -37,3 +37,27 @@ attachments = dooray.MessengerHookAttachments.builder()\
     .create()
 hook.send('Send Text with attachments builder', attachments=attachments)
 ```
+
+Messenger
+```python
+import dooray
+
+DOORAY_API_TOKEN = '<Your Dooray! API Token>'
+
+CHANNEL_TITLE = '<Channel Title>'
+MEMBER_TO_INVITE = '<Email address of a member>'
+
+d = dooray.Dooray(DOORAY_API_TOKEN)
+
+member = d.get_members(external_emails=MEMBER_TO_INVITE)
+member_id_list = [ member.result[0].id ]
+
+channel = d.messenger.create_channel(CHANNEL_TITLE, member_id_list)
+channel_id = channel.result.id
+
+d.messenger.send_channel_message(channel_id, 'Send Message to Channel')
+
+d.messenger.leave_channel(channel_id, member_id_list)
+
+d.messenger.join_channel(channel_id, member_id_list)
+```
