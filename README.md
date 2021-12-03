@@ -61,3 +61,12 @@ d.messenger.leave_channel(channel_id, member_id_list)
 
 d.messenger.join_channel(channel_id, member_id_list)
 ```
+
+## Change Log
+
+### Version 0.1 (Dec/02/2021)
+
+* Add API wrappers for
+    * Common > Members 
+    * Messenger > Channels
+    * Messenger Hook
