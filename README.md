@@ -6,6 +6,12 @@ This library enables you to access [Dooray!] services such as messenger, project
 [Dooray! REST API]: https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2937064454837487755
 [Dooray!]: https://dooray.com/
 
+## Install
+
+```commandline
+$ pip install PyDooray
+```
+
 ## How to use
 
 ### Messenger Hook
