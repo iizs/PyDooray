@@ -26,22 +26,22 @@ class Channel:
 
 class Users:
     def __init__(self, data):
-        self.participants = [ Participants(e) for e in data['participants'] ]
+        self.participants = [Participant(e) for e in data['participants']]
 
     def __repr__(self):
         return f"{{ 'participants': '{self.participants}' }}"
 
 
-class Participants:
+class Participant:
     def __init__(self, data):
         self.type = data['type']
-        self.member = Member(data['member'])
+        self.member = OrganizationMember(data['member'])
 
     def __repr__(self):
         return f"{{ 'type': '{self.type}', 'member': '{self.member}' }}"
 
 
-class Me(Participants):
+class Me(Participant):
     def __init__(self, data):
         super().__init__(data)
         self.role = data['role']
@@ -50,7 +50,7 @@ class Me(Participants):
         return f"{{ 'type': '{self.type}', 'member': '{self.member}', 'role': '{self.role}' }}"
 
 
-class Member:
+class OrganizationMember:
     def __init__(self, data):
         self.organizationMemberId = data['organizationMemberId']
 

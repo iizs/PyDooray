@@ -29,6 +29,7 @@ class DoorayListResponse(DoorayResponse):
         for e in data['result']:
             self.result.append(obj(e))
         if self.size is None:
+            self.page = 0
             self.size = self.total_count
 
     def __repr__(self):

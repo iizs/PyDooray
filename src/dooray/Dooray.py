@@ -179,6 +179,12 @@ class DoorayMessenger(DoorayBase):
 
         return dooray.DoorayObjects.DoorayResponse(resp.json())
 
+    def send_channel_log(self, channel_id, text):
+        """
+        Alias for send_channel_message()
+        """
+        return self.send_channel_message(channel_id, text)
+
     def join_channel(self, channel_id, member_ids):
         """
 
