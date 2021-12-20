@@ -5,13 +5,13 @@ class Project:
     def __init__(self, data):
         self.id = data['id']
         self.code = data['code']
-        self.description = data['description']
-        self.scope = data['scope']
-        self.state = data['state']
-        self.type = data['type']
-        self.organization = dooray.DoorayObjects.Relation(data['organization'])
-        self.wiki = dooray.DoorayObjects.Relation(data['wiki'])
-        self.drive = dooray.DoorayObjects.Relation(data['drive'])
+        self.description = None if 'description' not in data else data['description']
+        self.scope = None if 'scope' not in data else data['scope']
+        self.state = None if 'state' not in data else data['state']
+        self.type = None if 'type' not in data else data['type']
+        self.organization = None if 'organization' not in data else dooray.DoorayObjects.Relation(data['organization'])
+        self.wiki = None if 'wiki' not in data else dooray.DoorayObjects.Relation(data['wiki'])
+        self.drive = None if 'drive' not in data else dooray.DoorayObjects.Relation(data['drive'])
         # { state, type, organization, wiki, drive } are un-documented
 
     def __repr__(self):
@@ -62,3 +62,44 @@ class Tag:
 
     def __repr__(self):
         return f"{{ 'id': '{self.id}', 'name': '{self.name}', 'color': '{self.color}' }}"
+
+
+class Milestone:
+    def __init__(self, data):
+        self.id = data['id']
+        self.name = data['name']
+        self.status = data['status']
+        self.started_at = data['startedAt']
+        self.ended_at = data['endedAt']
+        self.closed_at = data['closedAt']
+        self.created_at = data['createdAt']
+        self.updated_at = data['updatedAt']
+
+    def __repr__(self):
+        return f"{{ 'id': '{self.id}', 'name': '{self.name}', 'status': '{self.status}', " \
+               f"'started_at': '{self.started_at}', 'ended_at': '{self.ended_at}', " \
+               f"'closed_at': '{self.closed_at}', 'created_at': '{self.created_at}', " \
+               f"'updated_at': '{self.updated_at}'}}"
+
+
+class ProjectMember:
+    def __init__(self, data):
+        self.organizationMemberId = data['organizationMemberId']
+        self.role = data['role']
+
+    def __repr__(self):
+        return f"{{ 'organizationMemberId': '{self.organizationMemberId}', 'role': '{self.role}' }}"
+
+
+class MemberGroup:
+    def __init__(self, data):
+        self.id = data['id']
+        self.code = data['code']
+        self.created_at = data['createdAt']
+        self.updated_at = data['updatedAt']
+        self.project = Project(data['project'])
+
+    def __repr__(self):
+        return f"{{ 'id': '{self.id}', 'code': '{self.code}', " \
+               f"'created_at': '{self.created_at}', 'updated_at': '{self.updated_at}', " \
+               f"'project': '{self.project}' }}"

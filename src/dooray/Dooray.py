@@ -1,4 +1,5 @@
 import requests
+import datetime
 import dooray.DoorayObjects
 import dooray.Member
 import dooray.IncomingHook
@@ -254,6 +255,33 @@ class DoorayProject(DoorayBase):
     ):
         super().__init__(token, endpoint, user_agent)
 
+    def is_creatable(self, code):
+        """
+        """
+        data = {
+            'code': code,
+        }
+
+        try:
+            self._request('POST', f'/project/v1/projects/is-creatable', json=data)
+        except BadHttpResponseStatusCode as e:
+            return False
+
+        return True
+
+    def create(self, code, description, scope='private'):
+        """
+        """
+        data = {
+            'code': code,
+            'description': description,
+            'scope': scope,
+        }
+
+        resp = self._request('POST', f'/project/v1/projects', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+
     def get(self, project_id):
         """
 
@@ -273,6 +301,18 @@ class DoorayProject(DoorayBase):
         resp = self._request('GET', f'/project/v1/projects/{project_id}/workflows')
 
         return dooray.DoorayObjects.DoorayListResponse(resp.json(), dooray.Project.Workflow)
+
+    def create_email_address(self, project_id, email_address, name):
+        """
+        """
+        data = {
+            'emailAddress': email_address,
+            'name': name,
+        }
+
+        resp = self._request('POST', f'/project/v1/projects/{project_id}/email-addresses', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
 
     def get_email_address(self, project_id, email_address_id):
         """
@@ -299,8 +339,9 @@ class DoorayProject(DoorayBase):
 
         data = {
             'name': name,
-            'color' : color,
+            'color': color,
         }
+        # TODO color parameter only accepts string in 'xxxxxx' format
 
         resp = self._request('POST', f'/project/v1/projects/{project_id}/tags', json=data)
 
@@ -317,3 +358,168 @@ class DoorayProject(DoorayBase):
         resp = self._request('GET', f'/project/v1/projects/{project_id}/tags/{tag_id}')
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Tag)
+
+    def create_milestone(self, project_id, name, start_at, end_at):
+        """
+
+        :param project_id:
+        :param name:
+        :param start_at:
+        :param end_at:
+        :return:
+        """
+        assert name is not None and isinstance(name, str), name
+        assert start_at is not None and (isinstance(start_at, str) or isinstance(start_at, datetime)), start_at
+        assert end_at is not None and (isinstance(end_at, str) or isinstance(end_at, datetime)), end_at
+
+        data = {
+            'name': name,
+            'startedAt': start_at,
+            'endedAt': end_at,
+        }
+        # TODO if startedAt parameter is given as '2021-12-01+09:00', UI shows it as '2021-11-30'
+        # TODO even if startedAt, endedAt parameters are given in other than KST format string, it is converted to KST
+
+        resp = self._request('POST', f'/project/v1/projects/{project_id}/milestones', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+
+    def get_milestone(self, project_id, milestone_id):
+        """
+
+        :param project_id:
+        :param milestone_id:
+        :return:
+        """
+
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/milestones/{milestone_id}')
+        # TODO in case of milestone_id is wrong, returns 200 OK with 'SERVER_GENERAL_ERROR', not a json object
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Milestone)
+
+    def update_milestone(self, project_id, milestone_id, name, status, start_at, end_at):
+        """
+
+        :param project_id:
+        :param milestone_id:
+        :param name:
+        :param status:
+        :param start_at:
+        :param end_at:
+        :return:
+        """
+        assert name is not None and isinstance(name, str), name
+        assert status is not None and isinstance(status, str), status
+        assert start_at is not None and (isinstance(start_at, str) or isinstance(start_at, datetime)), start_at
+        assert end_at is not None and (isinstance(end_at, str) or isinstance(end_at, datetime)), end_at
+
+        data = {
+            'name': name,
+            'status': status,
+            'startedAt': start_at,
+            'endedAt': end_at,
+        }
+        # TODO closedAt not updated if status set as 'closed' with this API
+
+        resp = self._request('PUT', f'/project/v1/projects/{project_id}/milestones/{milestone_id}', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())
+
+    def delete_milestone(self, project_id, milestone_id):
+        """
+
+        :param project_id:
+        :param milestone_id:
+        :return:
+        """
+
+        resp = self._request('DELETE', f'/project/v1/projects/{project_id}/milestones/{milestone_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())
+
+    def create_hook(self, project_id, url, send_events):
+        """
+
+        :param project_id:
+        :param url:
+        :param send_events:
+        :return:
+        """
+        assert url is not None and isinstance(url, str), url
+        assert send_events is not None and isinstance(send_events, list), send_events
+        # TODO send_events must contains subset of [ "postCreated", "postCommentCreated", "postTagChanged", "postDueDateChanged", "postWorkflowChanged" ]
+
+        data = {
+            'url': url,
+            'sendEvents': send_events,
+        }
+
+        resp = self._request('POST', f'/project/v1/projects/{project_id}/hooks', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+
+    def add_member(self, project_id, member_id, role='member'):
+        """
+
+        :param project_id:
+        :param member_id:
+        :param role:
+        :return:
+        """
+        assert member_id is not None and isinstance(member_id, str), member_id
+        assert role is not None and isinstance(role, str), role
+
+        data = {
+            'organizationMemberId': member_id,
+            'role': role,
+        }
+
+        resp = self._request('POST', f'/project/v1/projects/{project_id}/members', json=data)
+        # TODO result object is different from the API document
+        # TODO if already exist member, do nothing. but the response is the same as payload
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.ProjectMember)
+
+    def get_member(self, project_id, member_id):
+        """
+
+        :param project_id:
+        :param member_id:
+        :return:
+        """
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/members/{member_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.ProjectMember)
+
+    def get_member_groups(self, project_id, page=0, size=20):
+        """
+
+        :param project_id:
+        :param page:
+        :param size:
+        :return:
+        """
+        params = {}
+        # TODO does not works correctly due to API error
+
+        if page is not None:
+            params['page'] = page
+        if size is not None:
+            params['size'] = size
+
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/member-groups', params=params)
+        # TODO result returns list of lists. looks like an error
+
+        return dooray.DoorayObjects.DoorayListResponse(resp.json(), dooray.Project.MemberGroup, page=page, size=size)
+
+    def get_member_group(self, project_id, member_group_id):
+        """
+
+        :param project_id:
+        :param member_group_id:
+        :return:
+        """
+        # TODO does not works correctly yet
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/member-groups/{member_group_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.MemberGroup)
