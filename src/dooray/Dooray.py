@@ -257,6 +257,7 @@ class DoorayProject(DoorayBase):
     ):
         super().__init__(token, endpoint, user_agent)
 
+    # Project > Projects
     def is_creatable(self, code):
         """
         """
@@ -304,6 +305,7 @@ class DoorayProject(DoorayBase):
 
         return dooray.DoorayObjects.DoorayListResponse(resp.json(), dooray.Project.Workflow)
 
+    # Project > Projects > EmailAddress
     def create_email_address(self, project_id, email_address, name):
         """
         """
@@ -328,6 +330,7 @@ class DoorayProject(DoorayBase):
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.EmailAddress)
 
+    # Project > Projects > Tags
     def create_tag(self, project_id, name=None, color=None):
         """
 
@@ -361,6 +364,7 @@ class DoorayProject(DoorayBase):
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Tag)
 
+    # Project > Projects > Milestones
     def create_milestone(self, project_id, name, start_at, end_at):
         """
 
@@ -459,6 +463,7 @@ class DoorayProject(DoorayBase):
 
         return dooray.DoorayObjects.DoorayResponse(resp.json())
 
+    # Project > Projects > Hooks
     def create_hook(self, project_id, url, send_events):
         """
 
@@ -480,6 +485,7 @@ class DoorayProject(DoorayBase):
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
 
+    # Project > Projects > Members
     def add_member(self, project_id, member_id, role='member'):
         """
 
@@ -513,6 +519,7 @@ class DoorayProject(DoorayBase):
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.ProjectMember)
 
+    # Project > Projects > MemberGroups
     def get_member_groups(self, project_id, page=0, size=20):
         """
 
@@ -546,6 +553,65 @@ class DoorayProject(DoorayBase):
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.MemberGroup)
 
-    # TODO Project > Template
+    # Project > Projects > Template
+    def create_template(self, project_id, template):
+        """
+
+        """
+        resp = self._request('POST', f'/project/v1/projects/{project_id}/templates', json=template.to_json_dict())
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+
+    def get_templates(self, project_id, page=0, size=20):
+        """
+
+        :param project_id:
+        :param page:
+        :param size:
+        :return:
+        """
+        params = {}
+
+        if page is not None:
+            params['page'] = page
+        if size is not None:
+            params['size'] = size
+
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/templates', params=params)
+
+        return dooray.DoorayObjects.DoorayListResponse(resp.json(), dooray.Project.ReadTemplate, page=page, size=size)
+
+    def get_template(self, project_id, template_id, interpolation=False):
+        """
+
+        """
+        params = {}
+        if interpolation:
+            params['interpolation'] = 'true'
+
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/templates/{template_id}', params=params)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.ReadTemplate)
+
+    def update_template(self, project_id, template_id, template):
+        """
+
+        """
+        resp = self._request(
+            'PUT',
+            f'/project/v1/projects/{project_id}/templates/{template_id}',
+            json=template.to_json_dict()
+        )
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())
+
+    def delete_template(self, project_id, template_id):
+        """
+
+        """
+        resp = self._request('DELETE', f'/project/v1/projects/{project_id}/templates/{template_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())
+
     # TODO Project > Posts
     # TODO Projects > Posts > Logs
