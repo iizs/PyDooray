@@ -101,6 +101,8 @@ class Dooray(DoorayBase):
             params['page'] = page
         if size is not None:
             params['size'] = size
+        # TODO when no parameter given, it returns bad request.
+        #  but with name='' or userCode='' parameter, it returns all members. is it intended?
 
         resp = self._request('GET', f'/common/v1/members', params=params)
 
@@ -228,7 +230,8 @@ class DoorayMessenger(DoorayBase):
         :param capacity:
         :return:
         """
-        # TODO Creating 'private' channel with the same name and the same member do not return CHANNEL_ALREADY_EXISTS_ERROR(-300101)
+        # TODO Creating 'private' channel with the same name and the same member
+        #  does not return CHANNEL_ALREADY_EXISTS_ERROR(-300101)
         # TODO Creating 'direct' channel returns HTTP status code 500
         data = {
             'memberIds': DoorayMessenger._get_member_id_list(member_ids),
@@ -330,6 +333,8 @@ class DoorayProject(DoorayBase):
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.EmailAddress)
 
+    # TODO Email delete API needed
+
     # Project > Projects > Tags
     def create_tag(self, project_id, name=None, color=None):
         """
@@ -363,6 +368,8 @@ class DoorayProject(DoorayBase):
         resp = self._request('GET', f'/project/v1/projects/{project_id}/tags/{tag_id}')
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.Tag)
+
+    # TODO Tag delete API needed
 
     # Project > Projects > Milestones
     def create_milestone(self, project_id, name, start_at, end_at):
@@ -474,7 +481,8 @@ class DoorayProject(DoorayBase):
         """
         assert url is not None and isinstance(url, str), url
         assert send_events is not None and isinstance(send_events, list), send_events
-        # TODO send_events must contains subset of [ "postCreated", "postCommentCreated", "postTagChanged", "postDueDateChanged", "postWorkflowChanged" ]
+        # TODO send_events must contains subset of
+        #  [ "postCreated", "postCommentCreated", "postTagChanged", "postDueDateChanged", "postWorkflowChanged" ]
 
         data = {
             'url': url,
@@ -484,6 +492,8 @@ class DoorayProject(DoorayBase):
         resp = self._request('POST', f'/project/v1/projects/{project_id}/hooks', json=data)
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+
+    # TODO delete Hook API needed
 
     # Project > Projects > Members
     def add_member(self, project_id, member_id, role='member'):
