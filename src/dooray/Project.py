@@ -1,4 +1,5 @@
 import dooray.DoorayObjects
+from dooray.Member import Member
 
 
 class Project:
@@ -17,7 +18,7 @@ class Project:
     def __repr__(self):
         return f"{{ 'id': '{self.id}', 'code': '{self.code}', 'description': '{self.description}', " \
                f"'state': '{self.state}', 'type': '{self.type}', 'scope': '{self.scope}', " \
-               f"'organization': {self.organization}, 'wiki': {self.wiki},'drive': {self.drive} }}"
+               f"'organization': '{self.organization}', 'wiki': '{self.wiki}', 'drive': {self.drive} }}"
 
 
 class DisplayName:
@@ -69,8 +70,9 @@ class Milestone:
         self.id = data['id']
         self.name = data['name']
         self.status = data['status']
-        self.started_at = data['startedAt']
-        self.ended_at = data['endedAt']
+        # Milestone without a period do not return 'startedAt' and 'endAt' field.
+        self.started_at = data['startedAt'] if 'startedAt' in data else None
+        self.ended_at = data['endedAt'] if 'endedAt' in data else None
         self.closed_at = data['closedAt']
         self.created_at = data['createdAt']
         self.updated_at = data['updatedAt']
@@ -98,8 +100,19 @@ class MemberGroup:
         self.created_at = data['createdAt']
         self.updated_at = data['updatedAt']
         self.project = Project(data['project'])
+        if 'members' in data:
+            self.members = [MemberGroupMember(e) for e in data['members']]
 
     def __repr__(self):
         return f"{{ 'id': '{self.id}', 'code': '{self.code}', " \
                f"'created_at': '{self.created_at}', 'updated_at': '{self.updated_at}', " \
-               f"'project': '{self.project}' }}"
+               f"'project': '{self.project}', 'members': {self.members} }}"
+
+
+class MemberGroupMember:
+    def __init__(self, data):
+        self.organization_member = Member(data)
+
+    def __repr__(self):
+        return f"{self.organization_member}"
+

@@ -5,7 +5,7 @@ import dooray.Member
 import dooray.IncomingHook
 import dooray.Project
 import dooray.Messenger
-from .DoorayExceptions import BadHttpResponseStatusCode
+from .DoorayExceptions import BadHttpResponseStatusCode, ServerGeneralError
 
 DEFAULT_ENDPOINT = "https://api.dooray.com"
 
@@ -42,6 +42,8 @@ class DoorayBase:
 
         if resp.status_code != 200:
             raise BadHttpResponseStatusCode(resp)
+        if resp.text == 'SERVER_GENERAL_ERROR':
+            raise ServerGeneralError(resp)
 
         return resp
 
@@ -379,10 +381,32 @@ class DoorayProject(DoorayBase):
         }
         # TODO if startedAt parameter is given as '2021-12-01+09:00', UI shows it as '2021-11-30'
         # TODO even if startedAt, endedAt parameters are given in other than KST format string, it is converted to KST
+        # TODO how to create a milestone without period?
 
         resp = self._request('POST', f'/project/v1/projects/{project_id}/milestones', json=data)
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+
+    def get_milestones(self, project_id, page=0, size=20, status=None):
+        """
+
+        :param project_id:
+        :param page:
+        :param size:
+        :param status:
+        :return:
+        """
+        params = {}
+        if page is not None:
+            params['page'] = page
+        if size is not None:
+            params['size'] = size
+        if status is not None:
+            params['status'] = status
+
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/milestones', params=params)
+
+        return dooray.DoorayObjects.DoorayListResponse(resp.json(), dooray.Project.Milestone, page=page, size=size)
 
     def get_milestone(self, project_id, milestone_id):
         """
@@ -410,8 +434,6 @@ class DoorayProject(DoorayBase):
         """
         assert name is not None and isinstance(name, str), name
         assert status is not None and isinstance(status, str), status
-        assert start_at is not None and (isinstance(start_at, str) or isinstance(start_at, datetime)), start_at
-        assert end_at is not None and (isinstance(end_at, str) or isinstance(end_at, datetime)), end_at
 
         data = {
             'name': name,
@@ -519,7 +541,11 @@ class DoorayProject(DoorayBase):
         :param member_group_id:
         :return:
         """
-        # TODO does not works correctly yet
+
         resp = self._request('GET', f'/project/v1/projects/{project_id}/member-groups/{member_group_id}')
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.MemberGroup)
+
+    # TODO Project > Template
+    # TODO Project > Posts
+    # TODO Projects > Posts > Logs

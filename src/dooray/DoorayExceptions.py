@@ -8,3 +8,8 @@ class DoorayException(Exception):
 class BadHttpResponseStatusCode(DoorayException):
     def __init__(self, resp):
         self.message = f'Server has returned HTTP Response Status Code {resp.status_code}'
+
+
+class ServerGeneralError(DoorayException):
+    def __init__(self, resp):
+        self.message = f"Server has returned 'SERVER_GENERAL_ERROR'"
