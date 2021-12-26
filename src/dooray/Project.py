@@ -34,11 +34,12 @@ class Workflow:
     def __init__(self, data):
         self.id = data['id']
         self.name = data['name']
-        self.order = data['order']
-        self.workflow_class = data['class']
+        self.order = data['order'] if 'order' in data else None
+        self.workflow_class = data['class'] if 'class' in data else None
         self.names = []
-        for e in data['names']:
-            self.names.append(DisplayName(e))
+        if 'names' in data:
+            for e in data['names']:
+                self.names.append(DisplayName(e))
 
     def __repr__(self):
         return f"{{ 'id': '{self.id}', 'name': '{self.name}', 'order': '{self.order}', " \
@@ -95,14 +96,14 @@ class Milestone:
 
 class ProjectMember:
     def __init__(self, data):
-        self.organizationMemberId = data['organizationMemberId']
+        self.organization_member_id = data['organizationMemberId']
         self.role = data['role'] if 'role' in data else None
 
     def __repr__(self):
-        return f"{{ 'organizationMemberId': '{self.organizationMemberId}', 'role': '{self.role}' }}"
+        return f"{{ 'organizationMemberId': '{self.organization_member_id}', 'role': '{self.role}' }}"
 
     def to_json_dict(self):
-        d = {'organizationMemberId': self.organizationMemberId}
+        d = {'organizationMemberId': self.organization_member_id}
         if self.role is not None:
             d['role'] = self.role
         return d
@@ -135,22 +136,21 @@ class MemberGroupMember:
 class BasePost:
     def __init__(self, data=None):
         if data is not None:
-            self.users = PostUsers(data['users'])
+            self.users = PostUsers(data['users']) if 'users' in data else None
             self.body = PostBody(data['body']) if 'body' in data else None
             self.subject = data['subject']
             self.due_date = data['dueDate'] if 'dueDate' in data else None
             self.due_date_flag = data['dueDateFlag'] if 'dueDateFlag' in data else None
-            self.priority = data['priority']  # hightest, high, normal, low, lowest, none
+            # hightest, high, normal, low, lowest, none
+            self.priority = data['priority'] if 'priority' in data else None
 
-    def __repr__(self, without_brace=False):
+    def __repr__(self):
         ret = f"'users': '{self.users}', 'body': '{self.body}', 'subject': '{self.subject}', " \
               f"'due_date': '{self.due_date}', 'due_date_flag': '{self.due_date_flag}', 'priority': '{self.priority}'"
-        if without_brace is False:
-            ret = f'{{ {ret} }}'
         return ret
 
 
-class Post(BasePost):
+class WritePost(BasePost):
     def __init__(self, data=None):
         super().__init__(data)
         if data is not None:
@@ -160,7 +160,154 @@ class Post(BasePost):
             self.tag_ids = [tag_id for tag_id in data['tagIds']]
 
     def __repr__(self):
-        return f"{self.organization_member}"
+        return f"{{ {super().__repr__()} " \
+               f"'parent_post_id': '{self.parent_post_id}', 'version': '{self.version}', " \
+               f"'milestone_id': '{self.milestone_id}', 'tag_ids': '{self.tag_ids}' }}"
+
+    def to_json_dict(self):
+        d = {}
+        if hasattr(self, 'users') and self.users is not None:
+            d['users'] = self.users.to_json_dict()
+        if hasattr(self, 'body') and self.body is not None:
+            d['body'] = self.body.to_json_dict()
+        if hasattr(self, 'subject') and self.subject is not None:
+            d['subject'] = self.subject
+        if hasattr(self, 'due_date') and self.due_date is not None:
+            d['dueDate'] = self.due_date
+        if hasattr(self, 'due_date_flag') and self.due_date_flag is not None:
+            d['dueDateFlag'] = self.due_date_flag
+        if hasattr(self, 'milestone_id') and self.milestone_id is not None:
+            d['milestoneId'] = self.milestone_id
+        if hasattr(self, 'tag_ids') and self.tag_ids is not None:
+            d['tagIds'] = [tag_id for tag_id in self.tag_ids]
+        if hasattr(self, 'priority') and self.priority is not None:
+            d['priority'] = self.priority
+        if hasattr(self, 'version') and self.version is not None:
+            d['version'] = self.version
+        if hasattr(self, 'parent_post_id') and self.parent_post_id is not None:
+            d['parentPostId'] = self.parent_post_id
+        return d
+
+
+class PostBuilder:
+    def __init__(self):
+        self._post = WritePost()
+
+    def create(self):
+        return self._post
+
+    def set_parent_post_id(self, parent_post_id):
+        self._post.parent_post_id = parent_post_id
+        return self
+
+    def set_body(self, body):
+        self._post.body = PostBody({
+            'mimeType': 'text/x-markdown',
+            'content': body,
+        })
+        return self
+
+    def set_subject(self, subject):
+        self._post.subject = subject
+        return self
+
+    def set_due_date(self, due_date):
+        self._post.due_date = due_date
+        return self
+
+    def set_due_date_flag(self, due_date_flag):
+        self._post.due_date_flag = due_date_flag
+        return self
+
+    def set_milestone_id(self, milestone_id):
+        self._post.milestone_id = milestone_id
+        return self
+
+    def set_priority(self, priority):
+        self._post.priority = priority
+        return self
+
+    def set_version(self, version):
+        self._post.version = version
+        return self
+
+    def add_tag_id(self, tag_id):
+        if not hasattr(self._post, 'tag_ids') or self._post.tag_ids is None:
+            self._post.tag_ids = []
+        self._post.tag_ids.append(tag_id)
+        return self
+
+    def add_to_member(self, member_id):
+        if not hasattr(self._post, 'users') or self._post.users is None:
+            self._post.users = PostUsers()
+        self._post.users.to.append(PostUser({
+            'type': 'member',
+            'member': {
+                'organizationMemberId': member_id
+            }
+        }))
+        return self
+
+    def add_to_email_user(self, email, name):
+        if not hasattr(self._post, 'users') or self._post.users is None:
+            self._post.users = PostUsers()
+        self._post.users.to.append(PostUser({
+            'type': 'emailUser',
+            'emailUser': {
+                'emailAddress': email,
+                'name': name
+            }
+        }))
+        return self
+
+    def add_cc_member(self, member_id):
+        if not hasattr(self._post, 'users') or self._post.users is None:
+            self._post.users = PostUsers()
+        self._post.users.cc.append(PostUser({
+            'type': 'member',
+            'member': {
+                'organizationMemberId': member_id
+            }
+        }))
+        return self
+
+    def add_cc_email_user(self, email, name):
+        if not hasattr(self._post, 'users') or self._post.users is None:
+            self._post.users = PostUsers()
+        self._post.users.cc.append(PostUser({
+            'type': 'emailUser',
+            'emailUser': {
+                'emailAddress': email,
+                'name': name
+            }
+        }))
+        return self
+
+
+class ReadPost(BasePost):
+    def __init__(self, data):
+        super().__init__(data)
+        self.id = data['id']
+        self.project = Project(data['project']) if 'project' in data else None
+        self.task_number = data['taskNumber'] if 'taskNumber' in data else None
+        self.closed = data['closed'] if 'closed' in data else None
+        self.closed_at = data['closedAt'] if 'closedAt' in data else None
+        self.updated_at = data['updatedAt'] if 'updatedAt' in data else None
+        self.number = data['number']
+        self.parent = ReadPost(data['parent']) if 'parent' in data else None
+        self.workflow_class = data['workflowClass'] if 'workflowClass' in data else None
+        self.workflow = Workflow(data['workflow']) if 'workflow' in data else None
+        # 'milestone' is not returned as null if not set
+        self.milestone = Milestone(data['milestone']) if 'milestone' in data and data['milestone'] is not None else None
+        self.tags = [Tag(tag) for tag in data['tags']] if 'tags' in data else []
+
+    def __repr__(self):
+        return f"{{ {super().__repr__()}, 'id': '{self.id}', 'project': '{self.project}' " \
+               f"'task_number': '{self.task_number}', 'closed': '{self.closed}', " \
+               f"'closed_at': '{self.closed_at}', 'updated_at': '{self.updated_at}', " \
+               f"'number': '{self.number}', 'parent': '{self.parent}', " \
+               f"'workflow_class': '{self.workflow_class}', 'workflow': '{self.workflow}'" \
+               f"'milestone': '{self.milestone}', 'tags': '{self.tags}' }}"
 
 
 class WriteTemplate(BasePost):
@@ -174,7 +321,7 @@ class WriteTemplate(BasePost):
             self.tag_ids = [tag_id for tag_id in data['tagIds']]
 
     def __repr__(self):
-        return f"{{ {super().__repr__(without_brace=True)} " \
+        return f"{{ {super().__repr__()} " \
                f"'template_name': '{self.template_name}', 'guide': '{self.guide}', " \
                f"'is_default': '{self.is_default}', 'milestone_id': '{self.milestone_id}', " \
                f"'tag_ids': '{self.tag_ids}' }}"
@@ -320,7 +467,7 @@ class ReadTemplate(BasePost):
         self.tags = [Tag(tag) for tag in data['tags']]
 
     def __repr__(self):
-        return f"{{ {super().__repr__(without_brace=True)}, 'id': '{self.id}', 'project': '{self.project}' " \
+        return f"{{ {super().__repr__()}, 'id': '{self.id}', 'project': '{self.project}' " \
                f"'template_name': '{self.template_name}', 'guide': '{self.guide}', " \
                f"'is_default': '{self.is_default}', 'milestone': '{self.milestone}', " \
                f"'tags': '{self.tags}' }}"
@@ -347,17 +494,20 @@ class PostUser:
 class PostUsers:
     def __init__(self, data=None):
         if data is not None:
+            self.user_from = PostUser(data['from']) if 'from' in data else None
             self.to = [PostUser(u) for u in data['to']]
             self.cc = [PostUser(u) for u in data['cc']]
         else:
+            self.user_from = None
             self.to = []
             self.cc = []
 
     def __repr__(self):
-        return f"{{ 'to': {self.to}, 'cc': {self.cc} }}"
+        return f"{{ 'user_from': {self.user_from}, 'to': {self.to}, 'cc': {self.cc} }}"
 
     def to_json_dict(self):
         return {
+            'from': self.user_from,
             'to': [u.to_json_dict() for u in self.to],
             'cc': [u.to_json_dict() for u in self.cc],
         }

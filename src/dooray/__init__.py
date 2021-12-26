@@ -2,4 +2,4 @@ __all__ = ['MessengerHook']
 
 from .Dooray import Dooray
 from .MessengerHook import MessengerHook, MessengerHookAttachments
-from .Project import TemplateBuilder
+from .Project import TemplateBuilder, PostBuilder

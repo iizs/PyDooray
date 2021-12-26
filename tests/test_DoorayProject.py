@@ -104,7 +104,7 @@ class TestDoorayProject(unittest.TestCase):
             self._dooray.project.get_milestone(self._project_id, milestone_create.result.id)
 
     @unittest.skip("Skip test until Hook deletion API provided")
-    def notest_ProjectHook(self):
+    def test_ProjectHook(self):
         hook_create = self._dooray.project.create_hook(
             self._project_id,
             f'https://test.pydooray.net/hook/{str(self._ts)}',
@@ -118,11 +118,11 @@ class TestDoorayProject(unittest.TestCase):
 
         member_add = self._dooray.project.add_member(self._project_id, test_member.id, "member")
         print(member_add)
-        self.assertEqual(test_member.id, member_add.result.organizationMemberId)
+        self.assertEqual(test_member.id, member_add.result.organization_member_id)
 
         member_get = self._dooray.project.get_member(self._project_id, test_member.id)
         print(member_get)
-        self.assertEqual(test_member.id, member_get.result.organizationMemberId)
+        self.assertEqual(test_member.id, member_get.result.organization_member_id)
 
     def test_ProjectMemberGroup(self):
         # TODO below test is commented out due to API error
@@ -180,5 +180,82 @@ class TestDoorayProject(unittest.TestCase):
         templates_get = self._dooray.project.get_templates(self._project_id)
         print(templates_get)
         self.assertEqual(templates_get.total_count, count_templates)
+
+    def test_ProjectPost(self):
+        test_to_member = self.get_test_member()
+        print(test_to_member)
+        test_cc_member_1 = self.get_test_member()
+        print(test_cc_member_1)
+        test_cc_member_2 = self.get_test_member()
+        print(test_cc_member_2)
+
+        posts_get = self._dooray.project.get_posts(self._project_id)
+        print(posts_get)
+        count_posts = posts_get.total_count
+
+        post_builder = dooray.PostBuilder()
+        post_1 = post_builder\
+            .add_to_member(test_to_member.id)\
+            .add_cc_member(test_cc_member_1.id)\
+            .set_body(f'Body {self._ts}')\
+            .set_subject(f'Post {self._ts}')\
+            .create()
+        print(post_1.to_json_dict())
+        post_create_1 = self._dooray.project.create_post(self._project_id, post_1)
+        print(post_create_1)
+
+        post_2 = post_builder\
+            .set_parent_post_id(post_create_1.result.id) \
+            .set_subject(f'Post {self._ts} - child of {post_create_1.result.id}') \
+            .set_body(f'Body {self._ts} - child of {post_create_1.result.id}')\
+            .add_cc_member(test_cc_member_2.id)\
+            .create()
+        print(post_2.to_json_dict())
+        post_create_2 = self._dooray.project.create_post(self._project_id, post_2)
+        print(post_create_2)
+
+        post_get_1 = self._dooray.project.get_post(self._project_id, post_create_1.result.id)
+        print(post_get_1)
+        post_get_2 = self._dooray.project.get_post(self._project_id, post_create_2.result.id)
+        print(post_get_2)
+
+        posts_get = self._dooray.project.get_posts(
+            self._project_id,
+            to_member_ids=test_to_member.id
+        )
+        print(posts_get)
+        for post in posts_get.result:
+            found = False
+            for u in post.users.to:
+                if u.type == 'member' and u.member.organization_member_id == test_to_member.id:
+                    found = True
+                    break
+            self.assertTrue(found)
+
+        post_2_update = post_builder \
+            .set_parent_post_id(post_create_1.result.id) \
+            .set_subject(f'Post {self._ts} - child of {post_create_1.result.id} - updated') \
+            .set_body(f'Body {self._ts} - child of {post_create_1.result.id} - updated') \
+            .create()
+
+        post_update = self._dooray.project.update_post(self._project_id, post_create_2.result.id, post_2_update)
+        print(post_update)
+
+        workflow = self._dooray.project.get_workflows(self._project_id)
+        print(workflow)
+        workflows = {}
+        for w in workflow.result:
+            workflows[w.workflow_class] = w
+
+        self._dooray.project.set_post_workflow_for_member(
+            self._project_id,
+            post_create_2.result.id,
+            test_to_member.id,
+            workflows['working'].id
+        )
+
+        self._dooray.project.set_post_workflow(self._project_id, post_create_1.result.id, workflows['working'].id)
+
+        self._dooray.project.set_post_as_done(self._project_id, post_create_1.result.id)
 
 

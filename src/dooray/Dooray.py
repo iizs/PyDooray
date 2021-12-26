@@ -237,7 +237,7 @@ class DoorayMessenger(DoorayBase):
             'memberIds': DoorayMessenger._get_member_id_list(member_ids),
             'capacity': capacity,
             'type': channel_type,
-            'title':title,
+            'title': title,
         }
         params = {
             'idType': id_type,
@@ -270,7 +270,7 @@ class DoorayProject(DoorayBase):
 
         try:
             self._request('POST', f'/project/v1/projects/is-creatable', json=data)
-        except BadHttpResponseStatusCode as e:
+        except BadHttpResponseStatusCode:
             return False
 
         return True
@@ -623,5 +623,113 @@ class DoorayProject(DoorayBase):
 
         return dooray.DoorayObjects.DoorayResponse(resp.json())
 
-    # TODO Project > Posts
+    # Project > Projects > Posts
+    def create_post(self, project_id, post):
+        """
+
+        """
+        resp = self._request('POST', f'/project/v1/projects/{project_id}/posts', json=post.to_json_dict())
+        # TODO 'parentPostId' seems not working correctly
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+
+    def get_posts(self, project_id,
+                  page=0, size=20,
+                  from_email_address=None,
+                  from_member_ids=None,
+                  to_member_ids=None,
+                  cc_member_ids=None,
+                  tag_ids=None,
+                  parent_post_id=None,
+                  post_workflow_classes=None,
+                  post_workflow_ids=None,
+                  milestone_ids=None,
+                  created_at=None,
+                  updated_at=None,
+                  due_at=None,
+                  order=None
+                  ):
+        """
+
+        """
+        params = {}
+
+        # TODO *_ids may need to be converted from list to comma separated string
+        if page is not None:
+            params['page'] = page
+        if size is not None:
+            params['size'] = size
+        if from_email_address is not None:
+            params['fromEmailAddress'] = from_email_address
+        if from_member_ids is not None:
+            params['fromMemberIds'] = from_member_ids
+        if to_member_ids is not None:
+            params['toMemberIds'] = to_member_ids
+        if cc_member_ids is not None:
+            params['ccMemberIds'] = cc_member_ids
+        if tag_ids is not None:
+            params['ccMemberIds'] = tag_ids
+        if parent_post_id is not None:
+            params['parentPostId'] = parent_post_id
+        if post_workflow_ids is not None:
+            params['postWorkflowIds'] = post_workflow_ids
+        if post_workflow_classes is not None:
+            params['postWorkflowClasses'] = post_workflow_classes
+        if milestone_ids is not None:
+            params['milestoneIds'] = milestone_ids
+        if created_at is not None:
+            params['createdAt'] = created_at
+        if updated_at is not None:
+            params['updatedAt'] = updated_at
+        if due_at is not None:
+            params['dueAt'] = due_at
+        if order is not None:
+            params['order'] = order
+
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/posts', params=params)
+
+        return dooray.DoorayObjects.DoorayListResponse(resp.json(), dooray.Project.ReadPost, page=page, size=size)
+
+    def get_post(self, project_id, post_id):
+        """
+
+        """
+
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/posts/{post_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.ReadPost)
+
+    def update_post(self, project_id, post_id, post):
+        """
+
+        """
+        # TODO 'parentPostId' seems not working correctly
+        resp = self._request('PUT', f'/project/v1/projects/{project_id}/posts/{post_id}', json=post.to_json_dict())
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+
+    def set_post_workflow_for_member(self, project_id, post_id, member_id, workflow_id):
+        data = {
+            'workflowId': workflow_id
+        }
+        resp = self._request('PUT', f'/project/v1/projects/{project_id}/posts/{post_id}/to/{member_id}', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())
+
+    def set_post_workflow(self, project_id, post_id, workflow_id):
+        data = {
+            'workflowId': workflow_id
+        }
+        resp = self._request('POST', f'/project/v1/projects/{project_id}/posts/{post_id}/set-workflow', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())
+
+    def set_post_as_done(self, project_id, post_id):
+
+        resp = self._request('POST', f'/project/v1/projects/{project_id}/posts/{post_id}/set-done')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())
+
+    # TODO delete post API needed
+
     # TODO Projects > Posts > Logs
