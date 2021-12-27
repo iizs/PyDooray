@@ -473,6 +473,25 @@ class ReadTemplate(BasePost):
                f"'tags': '{self.tags}' }}"
 
 
+class PostLog:
+    def __init__(self, data):
+        self.id = data['id']
+        self.post = dooray.DoorayObjects.Relation(data['post'])
+        self.type = data['type']
+        self.subtype = data['subtype']
+        self.created_at = data['createdAt']
+        self.modified_at = data['modifiedAt'] if 'modifiedAt' in data else None
+        self.creator = PostUser(data['creator'])
+        self.mailUsers = PostUsers(data['mailUsers']) if 'mailUsers' in data else None
+        self.body = PostBody(data['body'])
+
+    def __repr__(self):
+        return f"{{ 'id': '{self.id}', 'post': {self.post}, 'type': '{self.type}', " \
+               f"'subtype': '{self.subtype}', 'created_at': '{self.created_at}', " \
+               f"'modified_at': '{self.modified_at}', 'creator': {self.creator}, " \
+               f"'mailUsers': {self.mailUsers}, 'body': {self.body} }}"
+
+
 class PostUser:
     def __init__(self, data):
         self.type = data['type']

@@ -568,6 +568,7 @@ class DoorayProject(DoorayBase):
         """
 
         """
+        # TODO html support for 'body' and 'guide'
         resp = self._request('POST', f'/project/v1/projects/{project_id}/templates', json=template.to_json_dict())
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
@@ -607,6 +608,7 @@ class DoorayProject(DoorayBase):
         """
 
         """
+        # TODO html support for 'body' and 'guide'
         resp = self._request(
             'PUT',
             f'/project/v1/projects/{project_id}/templates/{template_id}',
@@ -630,6 +632,7 @@ class DoorayProject(DoorayBase):
         """
         resp = self._request('POST', f'/project/v1/projects/{project_id}/posts', json=post.to_json_dict())
         # TODO 'parentPostId' seems not working correctly
+        # TODO html support for 'body'
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
 
@@ -704,6 +707,7 @@ class DoorayProject(DoorayBase):
 
         """
         # TODO 'parentPostId' seems not working correctly
+        # TODO html support for 'body'
         resp = self._request('PUT', f'/project/v1/projects/{project_id}/posts/{post_id}', json=post.to_json_dict())
 
         return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
@@ -732,4 +736,65 @@ class DoorayProject(DoorayBase):
 
     # TODO delete post API needed
 
-    # TODO Projects > Posts > Logs
+    # Project > Projects > Posts > Logs
+    def create_post_log(self, project_id, post_id, content):
+        """
+
+        """
+        data = {
+            'body': {
+                'content': content,
+                'mimeType': 'text/x-markdown'
+            }
+        }
+        resp = self._request('POST', f'/project/v1/projects/{project_id}/posts/{post_id}/logs', json=data)
+        # TODO html support for 'body'
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+
+    def get_post_logs(self, project_id, post_id, page=None, size=None, order=None):
+        """
+
+        """
+        params = {}
+        if page is not None:
+            params['page'] = page
+        if size is not None:
+            params['size'] = size
+        if order is not None:
+            params['order'] = order
+
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/posts/{post_id}/logs', params=params)
+
+        return dooray.DoorayObjects.DoorayListResponse(resp.json(), dooray.Project.PostLog, page=page, size=size)
+
+    def get_post_log(self, project_id, post_id, log_id):
+        """
+
+        """
+        resp = self._request('GET', f'/project/v1/projects/{project_id}/posts/{post_id}/logs/{log_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.Project.PostLog)
+
+    def update_post_log(self, project_id, post_id, log_id, content):
+        """
+
+        """
+        data = {
+            'body': {
+                'content': content,
+                'mimeType': 'text/x-markdown'
+            }
+        }
+        # TODO html support for 'body'
+        resp = self._request('PUT', f'/project/v1/projects/{project_id}/posts/{post_id}/logs/{log_id}', json=data)
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())
+
+    def delete_post_log(self, project_id, post_id, log_id):
+        """
+
+        """
+        resp = self._request('DELETE', f'/project/v1/projects/{project_id}/posts/{post_id}/logs/{log_id}')
+
+        return dooray.DoorayObjects.DoorayResponse(resp.json())

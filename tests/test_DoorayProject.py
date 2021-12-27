@@ -258,4 +258,50 @@ class TestDoorayProject(unittest.TestCase):
 
         self._dooray.project.set_post_as_done(self._project_id, post_create_1.result.id)
 
+        post_log_create_1 = self._dooray.project.create_post_log(
+            self._project_id,
+            post_create_1.result.id,
+            'First Comment with markdown'
+        )
+        print(post_log_create_1)
 
+        time.sleep(0.1)
+
+        post_log_create_2 = self._dooray.project.create_post_log(
+            self._project_id,
+            post_create_1.result.id,
+            'Second Comment with markdown'
+        )
+        print(post_log_create_2)
+
+        post_logs_get = self._dooray.project.get_post_logs(self._project_id, post_create_1.result.id)
+        print(post_logs_get)
+
+        post_log_get = self._dooray.project.get_post_log(
+            self._project_id,
+            post_create_1.result.id,
+            post_log_create_1.result.id
+        )
+        print(post_log_get)
+
+        self._dooray.project.update_post_log(
+            self._project_id,
+            post_create_1.result.id,
+            post_log_create_1.result.id,
+            'First Comment with markdown - updated'
+        )
+
+        post_log_get = self._dooray.project.get_post_log(
+            self._project_id,
+            post_create_1.result.id,
+            post_log_create_1.result.id
+        )
+        print(post_log_get)
+        self.assertEqual(post_log_get.result.body.content, 'First Comment with markdown - updated')
+
+        self._dooray.project.delete_post_log(self._project_id, post_create_1.result.id, post_log_create_1.result.id)
+        self._dooray.project.delete_post_log(self._project_id, post_create_1.result.id, post_log_create_2.result.id)
+
+        post_logs_get = self._dooray.project.get_post_logs(self._project_id, post_create_1.result.id)
+        print(post_logs_get)
+        self.assertEqual(post_logs_get.result, [])
