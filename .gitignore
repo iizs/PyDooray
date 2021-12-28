@@ -2,3 +2,6 @@
 .idea
 /dist/
 /src/PyDooray.egg-info/
+/docs/_build/
+/docs/_static/
+/docs/_templates/
