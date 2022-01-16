@@ -13,7 +13,7 @@ DEFAULT_ENDPOINT = "https://api.dooray.com"
 class DoorayBase:
     """
         This is the base class to access Dooray! API
-        """
+    """
 
     def __init__(
             self,
@@ -58,9 +58,29 @@ class Dooray(DoorayBase):
         endpoint=DEFAULT_ENDPOINT,
         user_agent="PyDooray/Python",
     ):
+        """
+        :param token: Dooray! API token
+        :type token: str
+        :param endpoint: Dooray! API endpoint, defaults to "https://api.dooray.com"
+        :type endpoint: str
+        :param user_agent: User agent string, defaults to "PyDooray/Python"
+        :type user_agent: str
+        """
         super().__init__(token, endpoint, user_agent)
+
         self.messenger = DoorayMessenger(token, endpoint, user_agent)
+        """
+        Messenger object to access Dooray! Messenger API
+        
+        :type: :class:`dooray.DoorayMessenger`
+        """
+
         self.project = DoorayProject(token, endpoint, user_agent)
+        """
+        Project object to access Dooray! Project API
+
+        :type: :class:`dooray.DoorayProject`
+        """
 
     def get_members(
         self,
@@ -73,15 +93,26 @@ class Dooray(DoorayBase):
         size=20
     ):
         """
+        Returns a list of members which match the given criteria.
 
-        :param name:
-        :param user_code:
-        :param user_code_exact:
-        :param id_provider_user_id:
-        :param external_emails:
-        :param page:
-        :param size:
-        :return:
+        :calls: `GET /common/v1/members \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+
+        :param name: Name of the member
+        :type name: str
+        :param user_code: User ID of the member, partial match
+        :type user_code: str
+        :param user_code_exact: User ID of the member, exact match
+        :type user_code_exact: str
+        :param id_provider_user_id: User ID from SSO provider
+        :type id_provider_user_id: str
+        :param external_emails: List of external emails of the member, exact match, comma separated
+        :type external_emails: str
+        :param page: Page number, starts from 0, defaults to 0
+        :type page: int
+        :param size: Page size, defaults to 20, max is 100
+        :type size: int
+        :return: :class:`dooray.DoorayObjects.DoorayListResponse` of :class:`dooray.Member.Member`
         """
         params = {}
         if name is not None:
@@ -110,9 +141,13 @@ class Dooray(DoorayBase):
 
     def get_incoming_hook(self, incoming_hook_id):
         """
-        https://hook.dooray.com/services/<?>/<incoming_hook_id>/<?>
-        :param incoming_hook_id:
-        :return:
+        Get an incoming hook information
+
+        :calls: `GET /common/v1/incomingHooks/{incoming-hook-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param incoming_hook_id: Incoming hook ID
+        :type incoming_hook_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.IncomingHook.IncomingHook`
         """
         resp = self._request('GET', f'/common/v1/incoming-hooks/{incoming_hook_id}')
 
@@ -121,8 +156,10 @@ class Dooray(DoorayBase):
 
 class DoorayMessenger(DoorayBase):
     """
-        This is the class to access the Dooray! Messenger API
-        """
+    This is the class to access the Dooray! Messenger API.
+
+    Instead of instantiating this class directly, use :class:`dooray.Dooray.messenger`
+    """
 
     def __init__(
             self,
@@ -145,8 +182,11 @@ class DoorayMessenger(DoorayBase):
 
     def get_channels(self):
         """
+        Get a list of messenger channels available.
 
-        :return:
+        :calls: `GET /messenger/v1/channels \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :return: :class:`dooray.DoorayObjects.DoorayListResponse` of :class:`dooray.Messenger.Channel`
         """
 
         resp = self._request('GET', f'/messenger/v1/channels')
@@ -155,10 +195,13 @@ class DoorayMessenger(DoorayBase):
 
     def send_direct_message(self, member_id, text):
         """
+        Send a direct message to a member.
 
-        :param member_id:
-        :param text:
-        :return:
+        :param member_id: Member ID of the recipient
+        :type member_id: str
+        :param text: Message text
+        :type text: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
         """
         data = {
             'text': text,
@@ -171,10 +214,15 @@ class DoorayMessenger(DoorayBase):
 
     def send_channel_message(self, channel_id, text):
         """
+        Send a message to a channel.
 
-        :param channel_id:
-        :param text:
-        :return:
+        :call: `POST /messenger/v1/channels/{channel-id}/send \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param channel_id: Channel ID
+        :type channel_id: str
+        :param text: Message text
+        :type text: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
         """
         data = {
             'text': text,
@@ -186,16 +234,21 @@ class DoorayMessenger(DoorayBase):
 
     def send_channel_log(self, channel_id, text):
         """
-        Alias for send_channel_message()
+        Alias for :class:`dooray.DoorayMessenger.send_channel_message`
         """
         return self.send_channel_message(channel_id, text)
 
     def join_channel(self, channel_id, member_ids):
         """
+        Add members to a messenger channel.
 
-        :param channel_id:
-        :param member_ids:
-        :return:
+        :calls: `POST /messenger/v1/channels/{channel-id}/members/join \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param channel_id: Channel ID
+        :type channel_id: str
+        :param member_ids: List of member IDs
+        :type member_ids: str or list
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
         """
         data = {
             'memberIds': DoorayMessenger._get_member_id_list(member_ids),
@@ -207,10 +260,15 @@ class DoorayMessenger(DoorayBase):
 
     def leave_channel(self, channel_id, member_ids):
         """
+        Remove members from a messenger channel.
 
-        :param channel_id:
-        :param member_ids:
-        :return:
+        :calls: `POST /messenger/v1/channels/{channel-id}/members/leave \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param channel_id: Channel ID
+        :type channel_id: str
+        :param member_ids: List of member IDs
+        :type member_ids: str or list
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
         """
         data = {
             'memberIds': DoorayMessenger._get_member_id_list(member_ids),
@@ -222,17 +280,26 @@ class DoorayMessenger(DoorayBase):
 
     def create_channel(self, title, member_ids, id_type='memberId', channel_type='private', capacity=100):
         """
+        Create a new messenger channel.
 
-        :param title:
-        :param channel_type:
-        :param member_ids:
-        :param id_type:
-        :param capacity:
-        :return:
+        :calls: `POST /messenger/v1/channels \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param title: Title of the channel
+        :type title: str
+        :param member_ids: Member IDs of the channel members
+        :type member_ids: list
+        :param id_type: Type of the member IDs. Can be 'memberId' or 'email'. Default is 'memberId'.
+        :type id_type: str
+        :param channel_type: Type of the channel. Can be 'private' or 'public'. Default is 'private'.
+        :type channel_type: str
+        :param capacity: Capacity of the channel. Default is 100.
+        :type capacity: int
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.DoorayObjects.Relation`
         """
         # TODO Creating 'private' channel with the same name and the same member
         #  does not return CHANNEL_ALREADY_EXISTS_ERROR(-300101)
         # TODO Creating 'direct' channel returns HTTP status code 500
+        # TODO Handle when member_ids is a string
         data = {
             'memberIds': DoorayMessenger._get_member_id_list(member_ids),
             'capacity': capacity,
@@ -249,8 +316,10 @@ class DoorayMessenger(DoorayBase):
 
 class DoorayProject(DoorayBase):
     """
-        This is the class to access the Dooray! Project API
-        """
+    This is the class to access the Dooray! Project API
+
+    Instead of instantiating this class directly, use :class:`dooray.Dooray.project`
+    """
 
     def __init__(
             self,
@@ -263,6 +332,13 @@ class DoorayProject(DoorayBase):
     # Project > Projects
     def is_creatable(self, code):
         """
+        Test if a project is creatable.
+
+        :calls: `GET /project/v1/projects/is-creatable \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param code: Project name
+        :type code: str
+        :return: True if creatable, False otherwise
         """
         data = {
             'code': code,
@@ -277,6 +353,17 @@ class DoorayProject(DoorayBase):
 
     def create(self, code, description, scope='private'):
         """
+        Create a new project.
+
+        :calls: `POST /project/v1/projects \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param code: Project name
+        :type code: str
+        :param description: Project description
+        :type description: str
+        :param scope: Project scope. Can be 'private' or 'public'. Default is 'private'.
+        :type scope: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.DoorayObjects.Relation`
         """
         data = {
             'code': code,
@@ -290,9 +377,13 @@ class DoorayProject(DoorayBase):
 
     def get(self, project_id):
         """
+        Get a project information.
 
-        :param project_id:
-        :return:
+        :calls: `GET /project/v1/projects/{project-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.Project.Project`
         """
         resp = self._request('GET', f'/project/v1/projects/{project_id}')
 
@@ -300,9 +391,13 @@ class DoorayProject(DoorayBase):
 
     def get_workflows(self, project_id):
         """
+        Get a project workflows.
 
-        :param project_id:
-        :return:
+        :calls: `GET /project/v1/projects/{project-id}/workflows \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.Project.Workflow`
         """
         resp = self._request('GET', f'/project/v1/projects/{project_id}/workflows')
 
@@ -311,6 +406,17 @@ class DoorayProject(DoorayBase):
     # Project > Projects > EmailAddress
     def create_email_address(self, project_id, email_address, name):
         """
+        Create a new project email address.
+
+        :calls: `POST /project/v1/projects/{project-id}/email-addresses \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param email_address: Email address
+        :type email_address: str
+        :param name: Name
+        :type name: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.DoorayObjects.Relation`
         """
         data = {
             'emailAddress': email_address,
@@ -323,10 +429,15 @@ class DoorayProject(DoorayBase):
 
     def get_email_address(self, project_id, email_address_id):
         """
+        Get a project email address.
 
-        :param project_id:
-        :param email_address_id:
-        :return:
+        :calls: `GET /project/v1/projects/{project-id}/email-addresses/{email-address-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param email_address_id: Email address ID
+        :type email_address_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.Project.EmailAddress`
         """
 
         resp = self._request('GET', f'/project/v1/projects/{project_id}/email-addresses/{email_address_id}')
@@ -338,11 +449,17 @@ class DoorayProject(DoorayBase):
     # Project > Projects > Tags
     def create_tag(self, project_id, name=None, color=None):
         """
+        Create a new tag for a project.
 
-        :param project_id:
-        :param name:
-        :param color:
-        :return:
+        :calls: `POST /project/v1/projects/{project-id}/tags \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param name: Name of the tag
+        :type name: str
+        :param color: Color of the tag in hexadecimal format. For example, 'FFFFFF'
+        :type color: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.DoorayObjects.Relation`
         """
         assert name is not None and isinstance(name, str), name
         assert color is not None and isinstance(color, str), color
@@ -359,10 +476,15 @@ class DoorayProject(DoorayBase):
 
     def get_tag(self, project_id, tag_id):
         """
+        Get a project tag.
 
-        :param project_id:
-        :param tag_id:
-        :return:
+        :calls: `GET /project/v1/projects/{project-id}/tags/{tag-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param tag_id: Tag ID
+        :type tag_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.Project.Tag`
         """
 
         resp = self._request('GET', f'/project/v1/projects/{project_id}/tags/{tag_id}')
@@ -374,12 +496,19 @@ class DoorayProject(DoorayBase):
     # Project > Projects > Milestones
     def create_milestone(self, project_id, name, start_at, end_at):
         """
+        Create a new milestone for a project.
 
-        :param project_id:
-        :param name:
-        :param start_at:
-        :param end_at:
-        :return:
+        :calls: `POST /project/v1/projects/{project-id}/milestones \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param name: Name of the milestone
+        :type name: str
+        :param start_at: Start date of the milestone in 'YYYY-MM-DD+ZZ' format. For example, '2019-01-01+00:00'
+        :type start_at: str
+        :param end_at: End date of the milestone in 'YYYY-MM-DD+ZZ' format. For example, '2019-01-01+00:00'
+        :type end_at: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.DoorayObjects.Relation`
         """
         assert name is not None and isinstance(name, str), name
         assert start_at is not None and (isinstance(start_at, str) or isinstance(start_at, datetime)), start_at
@@ -400,12 +529,19 @@ class DoorayProject(DoorayBase):
 
     def get_milestones(self, project_id, page=0, size=20, status=None):
         """
+        Get milestones of a project.
 
-        :param project_id:
-        :param page:
-        :param size:
-        :param status:
-        :return:
+        :calls: `GET /project/v1/projects/{project-id}/milestones \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param page: Page number. Starts from 0. Default is 0.
+        :type page: int
+        :param size: Number of items per page. Default is 20.
+        :type size: int
+        :param status: Filter milestones by status. Default is None.
+        :type status: 'open' | 'closed'
+        :return: :class:`dooray.DoorayObjects.DoorayListResponse` of :class:`dooray.Project.Milestone`
         """
         params = {}
         if page is not None:
@@ -421,10 +557,15 @@ class DoorayProject(DoorayBase):
 
     def get_milestone(self, project_id, milestone_id):
         """
+        Get a milestone in a project.
 
-        :param project_id:
-        :param milestone_id:
-        :return:
+        :calls: `GET /project/v1/projects/{project-id}/milestones/{milestone-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param milestone_id: Milestone ID
+        :type milestone_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.Project.Milestone`
         """
 
         resp = self._request('GET', f'/project/v1/projects/{project_id}/milestones/{milestone_id}')
@@ -434,14 +575,22 @@ class DoorayProject(DoorayBase):
 
     def update_milestone(self, project_id, milestone_id, name, status, start_at, end_at):
         """
+        Update a milestone.
 
-        :param project_id:
-        :param milestone_id:
-        :param name:
-        :param status:
-        :param start_at:
-        :param end_at:
-        :return:
+        :calls: `PUT /project/v1/projects/{project-id}/milestones/{milestone-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param milestone_id: Milestone ID
+        :type milestone_id: str
+        :param name: Name of the milestone
+        :param status: Status of the milestone.
+        :type status:  'open' | 'closed'
+        :param start_at: Start date of the milestone in 'YYYY-MM-DD+ZZ' format. For example, '2019-01-01+00:00'
+        :type start_at: str
+        :param end_at: End date of the milestone in 'YYYY-MM-DD+ZZ' format. For example, '2019-01-01+00:00'
+        :type end_at: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
         """
         assert name is not None and isinstance(name, str), name
         assert status is not None and isinstance(status, str), status
@@ -460,10 +609,15 @@ class DoorayProject(DoorayBase):
 
     def delete_milestone(self, project_id, milestone_id):
         """
+        Delete a milestone in a project.
 
-        :param project_id:
-        :param milestone_id:
-        :return:
+        :calls: `DELETE /project/v1/projects/{project-id}/milestones/{milestone-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param milestone_id: Milestone ID
+        :type milestone_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
         """
 
         resp = self._request('DELETE', f'/project/v1/projects/{project_id}/milestones/{milestone_id}')
@@ -473,11 +627,18 @@ class DoorayProject(DoorayBase):
     # Project > Projects > Hooks
     def create_hook(self, project_id, url, send_events):
         """
+        Create a hook in a project.
 
-        :param project_id:
-        :param url:
-        :param send_events:
-        :return:
+        :calls: `POST /project/v1/projects/{project-id}/hooks \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param url: URL of the hook
+        :type url: str
+        :param send_events: Events list to be sent to the hook. Possible events are as following:
+            "postCreated", "postCommentCreated", "postTagChanged", "postDueDateChanged", "postWorkflowChanged"
+        :type send_events: list
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.DoorayObjects.Relation`
         """
         assert url is not None and isinstance(url, str), url
         assert send_events is not None and isinstance(send_events, list), send_events
@@ -498,11 +659,17 @@ class DoorayProject(DoorayBase):
     # Project > Projects > Members
     def add_member(self, project_id, member_id, role='member'):
         """
+        Add a member to a project.
 
-        :param project_id:
-        :param member_id:
-        :param role:
-        :return:
+        :calls: `POST /project/v1/projects/{project-id}/members \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param member_id: Member ID
+        :type member_id: str
+        :param role: Role of the member. Default is 'member'
+        :type role: 'member' | 'admin'
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.Project.ProjectMember`
         """
         assert member_id is not None and isinstance(member_id, str), member_id
         assert role is not None and isinstance(role, str), role
@@ -520,10 +687,15 @@ class DoorayProject(DoorayBase):
 
     def get_member(self, project_id, member_id):
         """
+        Get a member of a project.
 
-        :param project_id:
-        :param member_id:
-        :return:
+        :calls: `GET /project/v1/projects/{project-id}/members/{member-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param member_id: Member ID
+        :type member_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.Project.ProjectMember`
         """
         resp = self._request('GET', f'/project/v1/projects/{project_id}/members/{member_id}')
 
@@ -532,11 +704,17 @@ class DoorayProject(DoorayBase):
     # Project > Projects > MemberGroups
     def get_member_groups(self, project_id, page=0, size=20):
         """
+        Get member groups of a project.
 
-        :param project_id:
-        :param page:
-        :param size:
-        :return:
+        :calls: `GET /project/v1/projects/{project-id}/member-groups \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param page: Page number. Starts from 0. Default is 0
+        :type page: int
+        :param size: Number of items per page. Default is 20
+        :type size: int
+        :return: :class:`dooray.DoorayObjects.DoorayListResponse` of :class:`dooray.Project.MemberGroup`
         """
         params = {}
         # TODO does not works correctly due to API error
@@ -553,10 +731,15 @@ class DoorayProject(DoorayBase):
 
     def get_member_group(self, project_id, member_group_id):
         """
+        Get a member group of a project.
 
-        :param project_id:
-        :param member_group_id:
-        :return:
+        :calls: `GET /project/v1/projects/{project-id}/member-groups/{member-group-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param member_group_id: Member group ID
+        :type member_group_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.Project.MemberGroup`
         """
 
         resp = self._request('GET', f'/project/v1/projects/{project_id}/member-groups/{member_group_id}')
@@ -566,7 +749,14 @@ class DoorayProject(DoorayBase):
     # Project > Projects > Template
     def create_template(self, project_id, template):
         """
+        Create a post template to a project.
 
+        :calls: `POST /project/v1/projects/{project-id}/templates \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param template: Template object to write. See :class:`dooray.TemplateBuilder`
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.DoorayObjects.Relation`
         """
         # TODO html support for 'body' and 'guide'
         resp = self._request('POST', f'/project/v1/projects/{project_id}/templates', json=template.to_json_dict())
@@ -575,11 +765,17 @@ class DoorayProject(DoorayBase):
 
     def get_templates(self, project_id, page=0, size=20):
         """
+        Get post templates of a project.
 
-        :param project_id:
-        :param page:
-        :param size:
-        :return:
+        :calls: `GET /project/v1/projects/{project-id}/templates \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param page: Page number. Starts from 0. Default is 0
+        :type page: int
+        :param size: Number of items per page. Default is 20
+        :type size: int
+        :return: :class:`dooray.DoorayObjects.DoorayListResponse` of :class:`dooray.Project.ReadTemplate`
         """
         params = {}
 
@@ -594,7 +790,17 @@ class DoorayProject(DoorayBase):
 
     def get_template(self, project_id, template_id, interpolation=False):
         """
+        Get a post template of a project.
 
+        :calls: `GET /project/v1/projects/{project-id}/templates/{template-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param template_id: Template ID
+        :type template_id: str
+        :param interpolation: If true, returns the interpolated template. Default is false
+        :type interpolation: bool
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.Project.ReadTemplate`
         """
         params = {}
         if interpolation:
@@ -606,7 +812,16 @@ class DoorayProject(DoorayBase):
 
     def update_template(self, project_id, template_id, template):
         """
+        Update a post template of a project.
 
+        :calls: `PUT /project/v1/projects/{project-id}/templates/{template-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param template_id: Template ID
+        :type template_id: str
+        :param template: Template object to write. See :class:`dooray.TemplateBuilder`
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
         """
         # TODO html support for 'body' and 'guide'
         resp = self._request(
@@ -619,7 +834,15 @@ class DoorayProject(DoorayBase):
 
     def delete_template(self, project_id, template_id):
         """
+        Delete a post template of a project.
 
+        :calls: `DELETE /project/v1/projects/{project-id}/templates/{template-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param template_id: Template ID
+        :type template_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
         """
         resp = self._request('DELETE', f'/project/v1/projects/{project_id}/templates/{template_id}')
 
@@ -628,7 +851,14 @@ class DoorayProject(DoorayBase):
     # Project > Projects > Posts
     def create_post(self, project_id, post):
         """
+        Create a post to a project.
 
+        :calls: `POST /project/v1/projects/{project-id}/posts \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param post: The post object to be written. See :class:`dooray.PostBuilder` for more details.
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.DoorayObjects.Relation`
         """
         resp = self._request('POST', f'/project/v1/projects/{project_id}/posts', json=post.to_json_dict())
         # TODO 'parentPostId' seems not working correctly
@@ -653,7 +883,52 @@ class DoorayProject(DoorayBase):
                   order=None
                   ):
         """
+        Get posts of a project which match the given criteria.
 
+        :calls: `GET /project/v1/projects/{project-id}/posts \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID
+        :type project_id: str
+        :param page: Page number. Starts from 0. Default is 0.
+        :type page: int
+        :param size: Number of posts per page. Default is 20.
+        :type size: int
+        :param from_email_address: Email address of the sender. Default is None.
+        :type from_email_address: str
+        :param from_member_ids: Member ID of the sender. Default is None.
+        :type from_member_ids: str
+        :param to_member_ids: Member ID of the receiver. Default is None.
+        :type to_member_ids: str
+        :param cc_member_ids: Member ID of the CC receiver. Default is None.
+        :type cc_member_ids: str
+        :param tag_ids: Project tag ID. Default is None.
+        :type tag_ids: str
+        :param parent_post_id: Parent post ID. Default is None.
+        :type parent_post_id: str
+        :param post_workflow_classes: Post workflow classes. Default is None.
+        :type post_workflow_classes: str or list of str
+        :param post_workflow_ids: Post workflow IDs. Default is None.
+        :type post_workflow_ids: str or list of str
+        :param milestone_ids: Milestone ID. Default is None.
+        :type milestone_ids: str
+        :param created_at: Created at. See below for the date format. Default is None.
+        :type created_at: str
+        :param updated_at: Updated at. See below for the date format. Default is None.
+        :type updated_at: str
+        :param due_at: Due at. See below for the date format. Default is None.
+        :type due_at: str
+        :param order: Sort order of the returned posts. Possible values are 'postDueAt', 'postUpdatedAt', 'createdAt',\
+            '-postDueAt', '-postUpdatedAt' and '-createdAt'. '-' means reverse order. Default is None.
+        :type order: str
+        :return: :class:`dooray.DoorayObjects.DoorayListResponse` of :class:`dooray.Project.ReadPost`
+        :date format: Possible values are as follows:
+
+        * today
+        * thisweek: A week starts from Monday
+        * prev-{N}d: N is an integer. Example: prev-7d
+        * next-{N}d: N is an integer. Example: next-7d
+        * {YYYY-MM-DDThh:mm:ssZ}~{YYYY-MM-DDThh:mm:ssZ}: A range of dates in ISO8601 format. \
+        Example: 2019-01-01T00:00:00Z~2019-01-02T00:00:00Z
         """
         params = {}
 
@@ -695,7 +970,15 @@ class DoorayProject(DoorayBase):
 
     def get_post(self, project_id, post_id):
         """
+        Get a post.
 
+        :calls: `GET /project/v1/projects/{project-id}/posts/{post-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID.
+        :type project_id: str
+        :param post_id: Post ID.
+        :type post_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.Project.ReadPost`
         """
 
         resp = self._request('GET', f'/project/v1/projects/{project_id}/posts/{post_id}')
@@ -704,15 +987,39 @@ class DoorayProject(DoorayBase):
 
     def update_post(self, project_id, post_id, post):
         """
+        Update a post.
 
+        :calls: `PUT /project/v1/projects/{project-id}/posts/{post-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID.
+        :type project_id: str
+        :param post_id: Post ID.
+        :type post_id: str
+        :param post: The post object to be written. See :class:`dooray.PostBuilder` for more details.
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
         """
         # TODO 'parentPostId' seems not working correctly
         # TODO html support for 'body'
         resp = self._request('PUT', f'/project/v1/projects/{project_id}/posts/{post_id}', json=post.to_json_dict())
 
-        return dooray.DoorayObjects.DoorayResponse(resp.json(), dooray.DoorayObjects.Relation)
+        return dooray.DoorayObjects.DoorayResponse(resp.json())
 
     def set_post_workflow_for_member(self, project_id, post_id, member_id, workflow_id):
+        """
+        Set a workflow of a post for a member.
+
+        :calls: `PUT /project/v1/projects/{project-id}/posts/{post-id}/to/{member-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID.
+        :type project_id: str
+        :param post_id: Post ID.
+        :type post_id: str
+        :param member_id: Member ID.
+        :type member_id: str
+        :param workflow_id: Workflow ID.
+        :type workflow_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
+        """
         data = {
             'workflowId': workflow_id
         }
@@ -721,6 +1028,19 @@ class DoorayProject(DoorayBase):
         return dooray.DoorayObjects.DoorayResponse(resp.json())
 
     def set_post_workflow(self, project_id, post_id, workflow_id):
+        """
+        Set a workflow of a post.
+
+        :calls: `PUT /project/v1/projects/{project-id}/posts/{post-id}/set-workflow \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID.
+        :type project_id: str
+        :param post_id: Post ID.
+        :type post_id: str
+        :param workflow_id: Workflow ID.
+        :type workflow_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
+        """
         data = {
             'workflowId': workflow_id
         }
@@ -729,6 +1049,17 @@ class DoorayProject(DoorayBase):
         return dooray.DoorayObjects.DoorayResponse(resp.json())
 
     def set_post_as_done(self, project_id, post_id):
+        """
+        Set a post as done.
+
+        :calls: `PUT /project/v1/projects/{project-id}/posts/{post-id}/set-done \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID.
+        :type project_id: str
+        :param post_id: Post ID.
+        :type post_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
+        """
 
         resp = self._request('POST', f'/project/v1/projects/{project_id}/posts/{post_id}/set-done')
 
@@ -739,7 +1070,17 @@ class DoorayProject(DoorayBase):
     # Project > Projects > Posts > Logs
     def create_post_log(self, project_id, post_id, content):
         """
+        Add a log to a post.
 
+        :calls: `POST /project/v1/projects/{project-id}/posts/{post-id}/logs \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID.
+        :type project_id: str
+        :param post_id: Post ID.
+        :type post_id: str
+        :param content: The content of the log.
+        :type content: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.DoorayObjects.Relation`
         """
         data = {
             'body': {
@@ -754,7 +1095,21 @@ class DoorayProject(DoorayBase):
 
     def get_post_logs(self, project_id, post_id, page=None, size=None, order=None):
         """
+        Get logs of a post.
 
+        :calls: `GET /project/v1/projects/{project-id}/posts/{post-id}/logs \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID.
+        :type project_id: str
+        :param post_id: Post ID.
+        :type post_id: str
+        :param page: Page number. Starts from 0. Default is 0.
+        :type page: int
+        :param size: Number of logs per page. Default is 20.
+        :type size: int
+        :param order: Order of logs. Possible values are 'createdAt' and '-createdAt'. Default is None.
+        :type order: str
+        :return: :class:`dooray.DoorayObjects.DoorayListResponse` of :class:`dooray.Project.PostLog`
         """
         params = {}
         if page is not None:
@@ -770,7 +1125,17 @@ class DoorayProject(DoorayBase):
 
     def get_post_log(self, project_id, post_id, log_id):
         """
+        Get a log of a post.
 
+        :calls: `GET /project/v1/projects/{project-id}/posts/{post-id}/logs/{log-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID.
+        :type project_id: str
+        :param post_id: Post ID.
+        :type post_id: str
+        :param log_id: Log ID.
+        :type log_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.Project.PostLog`
         """
         resp = self._request('GET', f'/project/v1/projects/{project_id}/posts/{post_id}/logs/{log_id}')
 
@@ -778,7 +1143,19 @@ class DoorayProject(DoorayBase):
 
     def update_post_log(self, project_id, post_id, log_id, content):
         """
+        Update a log of a post.
 
+        :calls: `PUT /project/v1/projects/{project-id}/posts/{post-id}/logs/{log-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID.
+        :type project_id: str
+        :param post_id: Post ID.
+        :type post_id: str
+        :param log_id: Log ID.
+        :type log_id: str
+        :param content: The content of the log.
+        :type content: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
         """
         data = {
             'body': {
@@ -793,7 +1170,17 @@ class DoorayProject(DoorayBase):
 
     def delete_post_log(self, project_id, post_id, log_id):
         """
+        Delete a log of a post.
 
+        :calls: `DELETE /project/v1/projects/{project-id}/posts/{post-id}/logs/{log-id} \
+            <https://helpdesk.dooray.com/share/pages/9wWo-xwiR66BO5LGshgVTg/2939987647631384419>`_
+        :param project_id: Project ID.
+        :type project_id: str
+        :param post_id: Post ID.
+        :type post_id: str
+        :param log_id: Log ID.
+        :type log_id: str
+        :return: :class:`dooray.DoorayObjects.DoorayResponse`
         """
         resp = self._request('DELETE', f'/project/v1/projects/{project_id}/posts/{post_id}/logs/{log_id}')
 

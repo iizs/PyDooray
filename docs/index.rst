@@ -7,7 +7,7 @@ This library enables you to access Dooray! services such as messenger, project, 
 API Reference
 =============
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    reference
 
