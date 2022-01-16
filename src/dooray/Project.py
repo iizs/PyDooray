@@ -5,14 +5,29 @@ from dooray.Member import Member
 class Project:
     def __init__(self, data):
         self.id = data['id']
+        """"""
         self.code = data['code']
+        """"""
         self.description = None if 'description' not in data else data['description']
+        """"""
         self.scope = None if 'scope' not in data else data['scope']
+        """"""
         self.state = None if 'state' not in data else data['state']
+        """"""
         self.type = None if 'type' not in data else data['type']
+        """"""
         self.organization = None if 'organization' not in data else dooray.DoorayObjects.Relation(data['organization'])
+        """
+        :type: :class:`dooray.DoorayObjects.Relation`
+        """
         self.wiki = None if 'wiki' not in data else dooray.DoorayObjects.Relation(data['wiki'])
+        """
+        :type: :class:`dooray.DoorayObjects.Relation`
+        """
         self.drive = None if 'drive' not in data else dooray.DoorayObjects.Relation(data['drive'])
+        """
+        :type: :class:`dooray.DoorayObjects.Relation`
+        """
         # { state, type, organization, wiki, drive } are un-documented
 
     def __repr__(self):
@@ -24,7 +39,9 @@ class Project:
 class DisplayName:
     def __init__(self, data):
         self.locale = data['locale']
+        """"""
         self.name = data['name']
+        """"""
 
     def __repr__(self):
         return f"{{ 'locale': '{self.locale}', 'name': '{self.name}' }}"
@@ -33,10 +50,15 @@ class DisplayName:
 class Workflow:
     def __init__(self, data):
         self.id = data['id']
+        """"""
         self.name = data['name']
+        """"""
         self.order = data['order'] if 'order' in data else None
+        """"""
         self.workflow_class = data['class'] if 'class' in data else None
+        """"""
         self.names = []
+        """"""
         if 'names' in data:
             for e in data['names']:
                 self.names.append(DisplayName(e))
@@ -49,8 +71,11 @@ class Workflow:
 class EmailAddress:
     def __init__(self, data):
         self.id = data['id'] if 'id' in data else None
+        """"""
         self.name = data['name']
+        """"""
         self.email_address = data['emailAddress']
+        """"""
 
     def __repr__(self):
         return f"{{ 'id': '{self.id}', 'name': '{self.name}', 'email_address': '{self.email_address}' }}"
@@ -68,8 +93,13 @@ class EmailAddress:
 class Tag:
     def __init__(self, data):
         self.id = data['id']
+        """"""
         self.name = data['name'] if 'name' in data else None
+        """"""
         self.color = data['color'] if 'color' in data else None
+        """
+        The color of the tag in hexadecimal format. Example: `00ff00`
+        """
 
     def __repr__(self):
         return f"{{ 'id': '{self.id}', 'name': '{self.name}', 'color': '{self.color}' }}"
@@ -78,14 +108,24 @@ class Tag:
 class Milestone:
     def __init__(self, data):
         self.id = data['id']
+        """"""
         self.name = data['name']
+        """"""
         self.status = data['status'] if 'status' in data else None
+        """
+        The status of the milestone. Possible values are `open` and `closed`.
+        """
         # Milestone without a period do not return 'startedAt' and 'endAt' field.
         self.started_at = data['startedAt'] if 'startedAt' in data else None
+        """"""
         self.ended_at = data['endedAt'] if 'endedAt' in data else None
+        """"""
         self.closed_at = data['closedAt'] if 'closedAt' in data else None
+        """"""
         self.created_at = data['createdAt'] if 'createdAt' in data else None
+        """"""
         self.updated_at = data['updatedAt'] if 'updatedAt' in data else None
+        """"""
 
     def __repr__(self):
         return f"{{ 'id': '{self.id}', 'name': '{self.name}', 'status': '{self.status}', " \
@@ -97,7 +137,9 @@ class Milestone:
 class ProjectMember:
     def __init__(self, data):
         self.organization_member_id = data['organizationMemberId']
+        """"""
         self.role = data['role'] if 'role' in data else None
+        """"""
 
     def __repr__(self):
         return f"{{ 'organizationMemberId': '{self.organization_member_id}', 'role': '{self.role}' }}"
@@ -112,12 +154,22 @@ class ProjectMember:
 class MemberGroup:
     def __init__(self, data):
         self.id = data['id']
+        """"""
         self.code = data['code']
+        """"""
         self.created_at = data['createdAt']
+        """"""
         self.updated_at = data['updatedAt']
+        """"""
         self.project = Project(data['project'])
+        """
+        :type: :class:`dooray.Project.Project`
+        """
         if 'members' in data:
             self.members = [MemberGroupMember(e) for e in data['members']]
+            """
+            :type: list of :class:`dooray.MemberGroup.MemberGroupMember`
+            """
 
     def __repr__(self):
         return f"{{ 'id': '{self.id}', 'code': '{self.code}', " \
@@ -128,6 +180,9 @@ class MemberGroup:
 class MemberGroupMember:
     def __init__(self, data):
         self.organization_member = Member(data)
+        """
+        :type: :class:`dooray.Member.Member`
+        """
 
     def __repr__(self):
         return f"{self.organization_member}"
@@ -137,15 +192,30 @@ class BasePost:
     def __init__(self, data=None):
         if data is not None:
             self.users = PostUsers(data['users']) if 'users' in data else None
+            """
+            :type: :class:`dooray.Project.PostUsers`
+            """
             self.body = PostBody(data['body']) if 'body' in data else None
+            """
+            :type: :class:`dooray.Project.PostBody`
+            """
             self.subject = data['subject']
+            """
+            The subject of the post or the template.
+            """
             self.due_date = data['dueDate'] if 'dueDate' in data else None
+            """
+            The due date of the post or the template.
+            """
             # TODO: dueDateFlag is marked as deprecated from the post document but not in the template document.
             #  Which is correct?
             self.due_date_flag = data['dueDateFlag'] if 'dueDateFlag' in data else None
             # hightest, high, normal, low, lowest, none
             # TODO: hightest is correct?
             self.priority = data['priority'] if 'priority' in data else None
+            """
+            The priority of the post or the template.
+            """
 
     def __repr__(self):
         ret = f"'users': '{self.users}', 'body': '{self.body}', 'subject': '{self.subject}', " \
@@ -384,18 +454,42 @@ class ReadPost(BasePost):
     def __init__(self, data):
         super().__init__(data)
         self.id = data['id']
+        """"""
         self.project = Project(data['project']) if 'project' in data else None
+        """
+        :type: :class:`dooray.Project.Project`
+        """
         self.task_number = data['taskNumber'] if 'taskNumber' in data else None
+        """"""
         self.closed = data['closed'] if 'closed' in data else None
+        """"""
         self.closed_at = data['closedAt'] if 'closedAt' in data else None
+        """"""
         self.updated_at = data['updatedAt'] if 'updatedAt' in data else None
+        """"""
         self.number = data['number']
+        """"""
         self.parent = ReadPost(data['parent']) if 'parent' in data else None
+        """
+        :type: :class:`dooray.Project.ReadPost`
+        """
         self.workflow_class = data['workflowClass'] if 'workflowClass' in data else None
+        """
+        The workflow class of the post. Possible values are `registered`, `working` and `closed`
+        """
         self.workflow = Workflow(data['workflow']) if 'workflow' in data else None
+        """
+        :type: :class:`dooray.Project.Workflow`
+        """
         # 'milestone' is not returned as null if not set
         self.milestone = Milestone(data['milestone']) if 'milestone' in data and data['milestone'] is not None else None
+        """
+        :type: :class:`dooray.Project.Milestone`
+        """
         self.tags = [Tag(tag) for tag in data['tags']] if 'tags' in data else []
+        """
+        :type: list of :class:`dooray.Project.Tag`
+        """
 
     def __repr__(self):
         return f"{{ {super().__repr__()}, 'id': '{self.id}', 'project': '{self.project}' " \
@@ -653,13 +747,30 @@ class ReadTemplate(BasePost):
     def __init__(self, data):
         super().__init__(data)
         self.id = data['id']
+        """"""
         self.project = Project(data['project'])
+        """
+        :type: :class:`dooray.Project.Project`
+        """
         self.template_name = data['templateName']
+        """"""
         self.guide = PostBody(data['guide']) if 'guide' in data else None
+        """
+        :type: :class:`dooray.Project.PostBody`
+        """
         self.is_default = data['isDefault']
+        """
+        :type: bool
+        """
         # 'milestone' is not returned if no milestones set
         self.milestone = Milestone(data['milestone']) if 'milestone' in data else None
+        """
+        :type: :class:`dooray.Project.Milestone`
+        """
         self.tags = [Tag(tag) for tag in data['tags']]
+        """
+        :type: list of :class:`dooray.Project.Tag`
+        """
 
     def __repr__(self):
         return f"{{ {super().__repr__()}, 'id': '{self.id}', 'project': '{self.project}' " \
@@ -671,14 +782,35 @@ class ReadTemplate(BasePost):
 class PostLog:
     def __init__(self, data):
         self.id = data['id']
+        """"""
         self.post = dooray.DoorayObjects.Relation(data['post'])
+        """
+        :type: :class:`dooray.DoorayObjects.Relation`
+        """
         self.type = data['type']
+        """
+        The type of log. Possible values are `comment` and 'event`.
+        """
         self.subtype = data['subtype']
+        """
+        the subtype of the log. Possible values are `general`, `from_email` and `sent_email`.
+        """
         self.created_at = data['createdAt']
+        """"""
         self.modified_at = data['modifiedAt'] if 'modifiedAt' in data else None
+        """"""
         self.creator = PostUser(data['creator'])
+        """
+        :type: :class:`dooray.Project.PostUser`
+        """
         self.mailUsers = PostUsers(data['mailUsers']) if 'mailUsers' in data else None
+        """
+        :type: :class:`dooray.Project.PostUsers`
+        """
         self.body = PostBody(data['body'])
+        """
+        :type: :class:`dooray.Project.PostBody`
+        """
 
     def __repr__(self):
         return f"{{ 'id': '{self.id}', 'post': {self.post}, 'type': '{self.type}', " \
@@ -690,8 +822,15 @@ class PostLog:
 class PostUser:
     def __init__(self, data):
         self.type = data['type']
+        """"""
         self.member = ProjectMember(data['member']) if 'member' in data else None
+        """
+        :type: :class:`dooray.Project.ProjectMember`
+        """
         self.email_user = EmailAddress(data['emailUser']) if 'emailUser' in data else None
+        """
+        :type: :class:`dooray.Project.EmailAddress`
+        """
 
     def __repr__(self):
         return f"{{ 'type': '{self.type}', 'member': {self.member}, 'email_user': {self.email_user} }}"
@@ -709,8 +848,17 @@ class PostUsers:
     def __init__(self, data=None):
         if data is not None:
             self.user_from = PostUser(data['from']) if 'from' in data else None
+            """
+            :type: :class:`dooray.Project.PostUser`
+            """
             self.to = [PostUser(u) for u in data['to']]
+            """
+            :type: list of :class:`dooray.Project.PostUser`
+            """
             self.cc = [PostUser(u) for u in data['cc']]
+            """
+            :type: list of :class:`dooray.Project.PostUser`
+            """
         else:
             self.user_from = None
             self.to = []
@@ -730,7 +878,9 @@ class PostUsers:
 class PostBody:
     def __init__(self, data):
         self.mime_type = data['mimeType']
+        """"""
         self.content = data['content']
+        """"""
 
     def __repr__(self):
         return f"{{ 'mime_type': '{self.mime_type}', 'content': '{self.content}' }}"
