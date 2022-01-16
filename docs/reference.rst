@@ -67,6 +67,9 @@ Basic Response Objects
 .. autoclass:: dooray.DoorayObjects.Relation
     :members:
 
+.. autoclass:: dooray.Member.Member
+    :members:
+
 Messenger Response Objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
