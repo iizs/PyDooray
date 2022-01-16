@@ -140,8 +140,11 @@ class BasePost:
             self.body = PostBody(data['body']) if 'body' in data else None
             self.subject = data['subject']
             self.due_date = data['dueDate'] if 'dueDate' in data else None
+            # TODO: dueDateFlag is marked as deprecated from the post document but not in the template document.
+            #  Which is correct?
             self.due_date_flag = data['dueDateFlag'] if 'dueDateFlag' in data else None
             # hightest, high, normal, low, lowest, none
+            # TODO: hightest is correct?
             self.priority = data['priority'] if 'priority' in data else None
 
     def __repr__(self):
@@ -190,17 +193,49 @@ class WritePost(BasePost):
 
 
 class PostBuilder:
+    """
+    A helper class to write or update a post.
+
+    See :class:`dooray.DoorayProject.create_post` or :class:`dooray.DoorayProject.update_post`.
+
+    Usage::
+
+        import dooray
+
+        d = dooray.Dooray(API_TOKEN)
+        post = dooray.PostBuilder()\\
+            .set_subject('test')\\
+            .set_body('test')\\
+            .add_to_member(member_id)\\
+            .create()
+        d.project.create_post(PROJECT_ID, post)
+    """
     def __init__(self):
         self._post = WritePost()
 
     def create(self):
+        """
+        Create a new post object to be written.
+        """
         return self._post
 
     def set_parent_post_id(self, parent_post_id):
+        """
+        Set the parent post id.
+
+        :param parent_post_id: The parent post id.
+        :type parent_post_id: str
+        """
         self._post.parent_post_id = parent_post_id
         return self
 
     def set_body(self, body):
+        """
+        Set the body of the post.
+
+        :param body: The body of the post.
+        :type body: str
+        """
         self._post.body = PostBody({
             'mimeType': 'text/x-markdown',
             'content': body,
@@ -208,36 +243,75 @@ class PostBuilder:
         return self
 
     def set_subject(self, subject):
+        """
+        Set the subject of the post.
+
+        :param subject: The subject of the post.
+        :type subject: str
+        """
         self._post.subject = subject
         return self
 
     def set_due_date(self, due_date):
+        """
+        Set the due date of the post.
+
+        :param due_date: The due date of the post in ISO 8601 format.
+        :type due_date: str
+        """
         self._post.due_date = due_date
         return self
 
-    def set_due_date_flag(self, due_date_flag):
-        self._post.due_date_flag = due_date_flag
-        return self
-
     def set_milestone_id(self, milestone_id):
+        """
+        Set the milestone id of the post.
+
+        :param milestone_id: The milestone id of the post.
+        :type milestone_id: str
+        """
         self._post.milestone_id = milestone_id
         return self
 
     def set_priority(self, priority):
+        """
+        Set the priority of the post.
+
+        :param priority: The priority of the post. \
+            Possible values are: 'highest', 'high', 'normal', 'low', 'lowest' and 'none'
+        :type priority: str
+        """
         self._post.priority = priority
         return self
 
     def set_version(self, version):
+        """
+        Set the version of the post.
+
+        :param version: The version of the post.
+        :type version: str
+        """
         self._post.version = version
         return self
 
     def add_tag_id(self, tag_id):
+        """
+        Add a tag id to the post.
+
+        :param tag_id: The tag id to add.
+        :type tag_id: str
+        """
         if not hasattr(self._post, 'tag_ids') or self._post.tag_ids is None:
             self._post.tag_ids = []
         self._post.tag_ids.append(tag_id)
         return self
 
     def add_to_member(self, member_id):
+        """
+        Add recipient to the post by member ID
+
+        :param member_id: The member ID to add.
+        :type member_id: str
+        """
         if not hasattr(self._post, 'users') or self._post.users is None:
             self._post.users = PostUsers()
         self._post.users.to.append(PostUser({
@@ -249,6 +323,14 @@ class PostBuilder:
         return self
 
     def add_to_email_user(self, email, name):
+        """
+        Add recipient to the post by email and name
+
+        :param email: The email of the user to add.
+        :type email: str
+        :param name: The name of the user to add.
+        :type name: str
+        """
         if not hasattr(self._post, 'users') or self._post.users is None:
             self._post.users = PostUsers()
         self._post.users.to.append(PostUser({
@@ -261,6 +343,12 @@ class PostBuilder:
         return self
 
     def add_cc_member(self, member_id):
+        """
+        Add cc recipient to the post by member ID
+
+        :param member_id: The member ID to add.
+        :type member_id: str
+        """
         if not hasattr(self._post, 'users') or self._post.users is None:
             self._post.users = PostUsers()
         self._post.users.cc.append(PostUser({
@@ -272,6 +360,14 @@ class PostBuilder:
         return self
 
     def add_cc_email_user(self, email, name):
+        """
+        Add cc recipient to the post by email and name
+
+        :param email: The email of the user to add.
+        :type email: str
+        :param name: The name of the user to add.
+        :type name: str
+        """
         if not hasattr(self._post, 'users') or self._post.users is None:
             self._post.users = PostUsers()
         self._post.users.cc.append(PostUser({
@@ -353,17 +449,49 @@ class WriteTemplate(BasePost):
 
 
 class TemplateBuilder:
+    """
+    A helper class to write or update a post template.
+
+    See :class:`dooray.DoorayProject.create_template` or :class:`dooray.DoorayProject.update_template`.
+
+    Usage::
+
+        import dooray
+
+        d = dooray.Dooray(API_TOKEN)
+        post = dooray.TemplateBuilder()\\
+            .set_subject('test')\\
+            .set_body('test')\\
+            .add_to_member(member_id)\\
+            .create()
+        d.project.create_template(PROJECT_ID, post)
+    """
     def __init__(self):
         self._template = WriteTemplate()
 
     def create(self):
+        """
+        Create a new post object to be written.
+        """
         return self._template
 
     def set_template_name(self, template_name):
+        """
+        Set the template name.
+
+        :param template_name: The template name.
+        :type template_name: str
+        """
         self._template.template_name = template_name
         return self
 
     def set_body(self, body):
+        """
+        Set the body of the template.
+
+        :param body: The body of the template.
+        :type body: str
+        """
         self._template.body = PostBody({
             'mimeType': 'text/x-markdown',
             'content': body,
@@ -371,6 +499,12 @@ class TemplateBuilder:
         return self
 
     def set_guide(self, guide):
+        """
+        Set the guide of the template.
+
+        :param guide: The guide of the template.
+        :type guide: str
+        """
         self._template.guide = PostBody({
             'mimeType': 'text/x-markdown',
             'content': guide,
@@ -378,36 +512,75 @@ class TemplateBuilder:
         return self
 
     def set_subject(self, subject):
+        """
+        Set the subject of the template.
+
+        :param subject: The subject of the template.
+        :type subject: str
+        """
         self._template.subject = subject
         return self
 
     def set_due_date(self, due_date):
+        """
+        Set the due date of the template.
+
+        :param due_date: The due date of the template in ISO 8601 format.
+        :type due_date: str
+        """
         self._template.due_date = due_date
         return self
 
-    def set_due_date_flag(self, due_date_flag):
-        self._template.due_date_flag = due_date_flag
-        return self
-
     def set_milestone_id(self, milestone_id):
+        """
+        Set the milestone id of the template.
+
+        :param milestone_id: The milestone id of the template.
+        :type milestone_id: int
+        """
         self._template.milestone_id = milestone_id
         return self
 
     def set_priority(self, priority):
+        """
+        Set the priority of the template.
+
+        :param priority: The priority of the template. \
+            Possible values are: 'highest', 'high', 'normal', 'low', 'lowest' and 'none'
+        :type priority: str
+        """
         self._template.priority = priority
         return self
 
     def set_is_default(self, is_default):
+        """
+        Set if this template is the default template of this project or not.
+
+        :param is_default: If true, this template is the default template of this project.
+        :type is_default: bool
+        """
         self._template.is_default = is_default
         return self
 
     def add_tag_id(self, tag_id):
+        """
+        Add a tag id to the post.
+
+        :param tag_id: The tag id to add.
+        :type tag_id: str
+        """
         if not hasattr(self._template, 'tag_ids') or self._template.tag_ids is None:
             self._template.tag_ids = []
         self._template.tag_ids.append(tag_id)
         return self
 
     def add_to_member(self, member_id):
+        """
+        Add recipient to the template by member ID
+
+        :param member_id: The member ID to add.
+        :type member_id: str
+        """
         if not hasattr(self._template, 'users') or self._template.users is None:
             self._template.users = PostUsers()
         self._template.users.to.append(PostUser({
@@ -419,6 +592,14 @@ class TemplateBuilder:
         return self
 
     def add_to_email_user(self, email, name):
+        """
+        Add recipient to the template by email and name
+
+        :param email: The email of the user to add.
+        :type email: str
+        :param name: The name of the user to add.
+        :type name: str
+        """
         if not hasattr(self._template, 'users') or self._template.users is None:
             self._template.users = PostUsers()
         self._template.users.to.append(PostUser({
@@ -431,6 +612,12 @@ class TemplateBuilder:
         return self
 
     def add_cc_member(self, member_id):
+        """
+        Add cc recipient to the template by member ID
+
+        :param member_id: The member ID to add.
+        :type member_id: str
+        """
         if not hasattr(self._template, 'users') or self._template.users is None:
             self._template.users = PostUsers()
         self._template.users.cc.append(PostUser({
@@ -442,6 +629,14 @@ class TemplateBuilder:
         return self
 
     def add_cc_email_user(self, email, name):
+        """
+        Add cc recipient to the template by email and name
+
+        :param email: The email of the user to add.
+        :type email: str
+        :param name: The name of the user to add.
+        :type name: str
+        """
         if not hasattr(self._template, 'users') or self._template.users is None:
             self._template.users = PostUsers()
         self._template.users.cc.append(PostUser({

@@ -10,17 +10,33 @@ Dooray
     :members:
     :undoc-members:
 
-DoorayMessenger
-~~~~~~~~~~~~~~~
+Dooray Messenger
+~~~~~~~~~~~~~~~~
 
 .. autoclass:: dooray.DoorayMessenger
     :members:
     :undoc-members:
 
-DoorayProject
-~~~~~~~~~~~~~
+Dooray Project
+~~~~~~~~~~~~~~
 
 .. autoclass:: dooray.DoorayProject
+    :members:
+    :undoc-members:
+
+DoorayObject Builder
+--------------------
+
+Post Builder
+~~~~~~~~~~~~~
+.. autoclass:: dooray.PostBuilder
+    :members:
+    :undoc-members:
+
+Template Builder
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: dooray.TemplateBuilder
     :members:
     :undoc-members:
 
@@ -32,3 +48,11 @@ Messenger Hook
 .. autoclass:: dooray.MessengerHookAttachments
     :members:
 
+Dooray Objects
+--------------
+
+.. autoclass:: dooray.DoorayObjects.ResponseHeader
+    :members:
+
+.. autoclass:: dooray.DoorayObjects.DoorayResponse
+    :members:
