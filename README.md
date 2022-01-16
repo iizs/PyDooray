@@ -68,7 +68,55 @@ d.messenger.leave_channel(channel_id, member_id_list)
 d.messenger.join_channel(channel_id, member_id_list)
 ```
 
+### Project
+```python
+import dooray
+
+DOORAY_API_TOKEN = '<Your Dooray! API Token>'
+TO_MEMBER_ID = '<To Member ID>'
+CC_MEMBER_ID = '<CC Member ID>'
+
+d = dooray.Dooray(DOORAY_API_TOKEN)
+
+project_name = f'PyDooray'
+project_desc = f'Created by PyDooray > TestDoorayProject'
+project_scope = 'private'
+response = d.project.create(project_name, project_desc, project_scope)
+project_id = response.result.id
+
+post = dooray.PostBuilder()\
+    .add_to_member(TO_MEMBER_ID)\
+    .add_cc_member(CC_MEMBER_ID)\
+    .set_subject(f'Test Subject')\
+    .set_body(f'Test Body')\
+    .create()
+
+response = d.project.create_post(project_id, post)
+post_id = response.result.id
+
+d.project.create_post_log(project_id, post_id, 'Test Comment')
+```
+
+## API Reference
+
+See [API Reference](https://pydooray.readthedocs.io/)
+
 ## Change Log
+
+### Version 0.2 (Jan/16/2022)
+
+* Add API wrappers for
+    * Project > Projects
+    * Project > Projects > EmailAddress
+    * Project > Projects > Tags
+    * Project > Projects > Milestones
+    * Project > Projects > Hooks
+    * Project > Projects > Members
+    * Project > Projects > MemberGroups
+    * Project > Projects > Template
+    * Project > Projects > Posts
+    * Project > Projects > Posts > Logs
+* Add ReadTheDocs documentation
 
 ### Version 0.1 (Dec/02/2021)
 
