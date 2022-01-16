@@ -1,1 +1,1 @@
-collect_ignore = ["test_MessengerHook.py"]
+collect_ignore = []

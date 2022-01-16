@@ -1,9 +1,9 @@
 import unittest
 import time
 import dooray
+from tests.tokens import MESSENGER_HOOK_URL
 
-MESSENGER_HOOK_URL = '<Your hook url>'
-MESSENGER_HOOK_ICON_URL = "<Your hook icon url>"
+MESSENGER_HOOK_ICON_URL = "https://nhnent.dooray.com/messenger/v1/api/stickers/16/01_on_110px"
 
 
 class TestMessengerHook(unittest.TestCase):
@@ -64,4 +64,8 @@ class TestMessengerHook(unittest.TestCase):
 
 class TestCustomizedMessengerHook(TestMessengerHook):
     def setUp(self):
-        self._hook = dooray.MessengerHook(MESSENGER_HOOK_URL, hook_name="My Name", hook_icon=MESSENGER_HOOK_ICON_URL)
+        self._hook = dooray.MessengerHook(
+            MESSENGER_HOOK_URL,
+            hook_name="Under Construction",
+            hook_icon=MESSENGER_HOOK_ICON_URL
+        )
