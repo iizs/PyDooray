@@ -3,10 +3,24 @@ API Reference
 
 .. module:: dooray
 
-Class
+Dooray
 ------
 
 .. autoclass:: dooray.Dooray
+    :members:
+    :undoc-members:
+
+DoorayMessenger
+~~~~~~~~~~~~~~~
+
+.. autoclass:: dooray.DoorayMessenger
+    :members:
+    :undoc-members:
+
+DoorayProject
+~~~~~~~~~~~~~
+
+.. autoclass:: dooray.DoorayProject
     :members:
     :undoc-members:
 
