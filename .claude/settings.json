@@ -1,0 +1,10 @@
+{
+  "defaultMode": "acceptEdits",
+  "permissions": {
+    "allow": [
+      "Edit(**)",
+      "Bash(mkdir *)",
+      "Bash(openclaw *)"
+    ]
+  }
+}
