@@ -132,8 +132,12 @@ class Dooray(DoorayBase):
             params['page'] = page
         if size is not None:
             params['size'] = size
-        # TODO when no parameter given, it returns bad request.
-        #  but with name='' or userCode='' parameter, it returns all members. is it intended?
+
+        # Dooray API returns bad request when no filter parameter is given.
+        # Inject name='' as a workaround to allow get_members() without explicit filters.
+        filter_keys = {'name', 'userCode', 'userCodeExact', 'idProviderUserId', 'externalEmailAddresses'}
+        if not any(k in params for k in filter_keys):
+            params['name'] = ''
 
         resp = self._request('GET', f'/common/v1/members', params=params)
 

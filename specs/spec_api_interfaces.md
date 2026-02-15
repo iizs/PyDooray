@@ -93,7 +93,8 @@ Dooray(
 | `size` | `int` | `size` | `20` | Page size (max 100) |
 
 * **Returns:** `DoorayListResponse` of `Member`
-* **Known issue:** Returns bad request when no query parameter is given. Workaround: pass `name=''` or `user_code=''`.
+* **Known issue:** Dooray API returns bad request when no query parameter is given.
+* **Workaround (REQUIRED):** If no filter parameters (`name`, `user_code`, `user_code_exact`, `id_provider_user_id`, `external_emails`) are provided, the library must automatically inject `name=''` as a default query parameter so that `get_members()` works without requiring the caller to pass an explicit workaround.
 
 ### 3.3 `get_incoming_hook(incoming_hook_id)` — Common > IncomingHooks
 
@@ -611,13 +612,13 @@ if tag_ids is not None:
 
 ---
 
-## 6. Missing APIs (Noted as TODOs in Source)
+## 6. Unavailable APIs (Confirmed against Dooray API docs, 2026-02-14)
 
-The following API operations are referenced in code TODOs but not yet implemented:
+The following operations are referenced as TODOs in source code but **do not exist in the Dooray REST API**. These cannot be implemented until Dooray provides the endpoints.
 
-| Category | Operation | Comment |
+| Category | Operation | Status |
 |---|---|---|
-| Project > EmailAddress | Delete | "Email delete API needed" |
-| Project > Tags | Delete | "Tag delete API needed" |
-| Project > Hooks | Delete | "delete Hook API needed" |
-| Project > Posts | Delete | "delete post API needed" |
+| Project > EmailAddress | Delete | Not provided by Dooray API |
+| Project > Tags | Delete | Not provided by Dooray API |
+| Project > Hooks | Delete | Not provided by Dooray API |
+| Project > Posts | Delete | Not provided by Dooray API |
