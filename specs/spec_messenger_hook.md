@@ -72,9 +72,9 @@ Sends a message to the configured hook URL.
 }
 ```
 
-**Returns:** `None` (no return value)
+**Returns:** `bool` — `True` if message was sent successfully (`status_code == 200`), `False` otherwise.
 
-**Error handling:** If `resp.status_code != 200`, the error is silently ignored (`pass`).
+**Error handling (FIX REQUIRED, P0):** Must return `False` when `resp.status_code != 200` instead of silently ignoring the error. Never raise an exception — this is a fire-and-forget utility, but the caller must be able to check the result.
 
 ---
 

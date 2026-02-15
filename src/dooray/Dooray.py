@@ -946,7 +946,7 @@ class DoorayProject(DoorayBase):
         if cc_member_ids is not None:
             params['ccMemberIds'] = cc_member_ids
         if tag_ids is not None:
-            params['ccMemberIds'] = tag_ids
+            params['tagIds'] = tag_ids
         if parent_post_id is not None:
             params['parentPostId'] = parent_post_id
         if post_workflow_ids is not None:

@@ -520,11 +520,11 @@ Normalizes member IDs to a list.
 
 * **Returns:** `DoorayListResponse` of `ReadPost`
 
-**BUG (line 949):** `tag_ids` parameter is incorrectly assigned to `params['ccMemberIds']` instead of `params['tagIds']`:
+**FIX REQUIRED (P0):** `tag_ids` parameter must be mapped to query key `tagIds`.
 ```python
-# Current (BUGGY):
+# Correct implementation:
 if tag_ids is not None:
-    params['ccMemberIds'] = tag_ids  # BUG: should be 'tagIds'
+    params['tagIds'] = tag_ids
 ```
 
 #### `get_post(project_id, post_id)` — Get Post
