@@ -70,7 +70,7 @@ To ensure a seamless and isolated development process, especially for PyPI packa
 
 ### 2. Environment Setup & Dependency Management
 - **Python Version Selection**: 
-    - Before creating a venv, **check the `pyproject.toml` or `setup.py`** for the `requires-python` specification.
+    - Before creating a venv, **check the `pyproject.toml`, `setup.cfg` or `setup.py`** for the `requires-python` specification.
     - If the project requires a specific version (e.g., Python 3.11, PyPy), ensure you use the correct executable.
     - **Crucial**: If the required version is ambiguous or if multiple versions are available, **ask the user explicitly** which Python executable/version to use for the worktree.
 - **Local venv**: Initialize a dedicated virtual environment (`.venv`) inside each worktree directory.
