@@ -1,11 +1,13 @@
 import unittest
 import time
+import pytest
 import dooray
 from tests.tokens import MESSENGER_HOOK_URL
 
 MESSENGER_HOOK_ICON_URL = "https://nhnent.dooray.com/messenger/v1/api/stickers/16/01_on_110px"
 
 
+@pytest.mark.integration
 class TestMessengerHook(unittest.TestCase):
     def setUp(self):
         self._hook = dooray.MessengerHook(MESSENGER_HOOK_URL)
@@ -62,6 +64,7 @@ class TestMessengerHook(unittest.TestCase):
         self._hook.send('Send Text with attachments builder: Ok', attachments=attachments)
 
 
+@pytest.mark.integration
 class TestCustomizedMessengerHook(TestMessengerHook):
     def setUp(self):
         self._hook = dooray.MessengerHook(

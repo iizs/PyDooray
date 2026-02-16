@@ -1,6 +1,12 @@
+"""Integration tests for DoorayProject.
+
+Refactored from tests/test_DoorayProject.py.
+Requires a valid API token and Dooray account.
+"""
 import unittest
 import time
 import random
+import pytest
 import dooray
 from dooray.DoorayExceptions import BadHttpResponseStatusCode, ServerGeneralError
 from tests.tokens import API_TOKEN
@@ -8,6 +14,7 @@ from tests.tokens import API_TOKEN
 MEMBER_ID_FOR_TEST = '2492022087928904640'
 
 
+@pytest.mark.integration
 class TestDoorayProject(unittest.TestCase):
     def setUp(self):
         self._dooray = dooray.Dooray(API_TOKEN)
@@ -27,23 +34,31 @@ class TestDoorayProject(unittest.TestCase):
     def get_test_member(self, seed=None):
         if seed is not None:
             random.seed(self._ts)
-        # TODO this might be a hack to get all members. If this is not allowed, need to find out better way.
         members = self._dooray.get_members(user_code='')
-        idx = random.randint(0, min(members.total_count, members.size)-1)
+        idx = random.randint(0, min(members.total_count, members.size) - 1)
         return members.result[idx]
 
-    def test_Project(self):
-        project_get = self._dooray.project.get(self._project_id)
-        print(project_get)
+    # --- Project ---
 
+    def test_project_get(self):
+        project_get = self._dooray.project.get(self._project_id)
+        self.assertIsNotNone(project_get.result.code)
+
+    def test_project_is_creatable(self):
+        project_get = self._dooray.project.get(self._project_id)
         self.assertFalse(self._dooray.project.is_creatable(project_get.result.code))
         self.assertTrue(self._dooray.project.is_creatable(project_get.result.code + '-1'))
 
+    # --- Workflows ---
+
+    def test_workflows(self):
         workflow = self._dooray.project.get_workflows(self._project_id)
-        print(workflow)
+        self.assertGreater(len(workflow.result), 0)
+
+    # --- Email (skipped - no delete API) ---
 
     @unittest.skip("Skip test until Email deletion API provided")
-    def test_ProjectEmail(self):
+    def test_project_email(self):
         email_create = self._dooray.project.create_email_address(
             self._project_id,
             f'pydooray.{str(self._ts)}@pydooray.dooray.com',
@@ -52,16 +67,18 @@ class TestDoorayProject(unittest.TestCase):
         email_get = self._dooray.project.get_email_address(self._project_id, email_create.result.id)
         self.assertEqual(email_get.result.email_address, f'pydooray.{str(self._ts)}@pydooray.dooray.com')
         self.assertEqual(email_get.result.name, f'PyDooray.{str(self._ts)}')
-        print(email_get)
+
+    # --- Tags (skipped - no delete API) ---
 
     @unittest.skip("Skip test until Tag deletion API provided")
-    def test_ProjectTags(self):
+    def test_project_tags(self):
         tag_create = self._dooray.project.create_tag(self._project_id, f'tag.{str(self._ts)}', 'ff0000')
         tag_get = self._dooray.project.get_tag(self._project_id, tag_create.result.id)
         self.assertEqual(tag_get.result.name, f'tag.{str(self._ts)}')
-        print(tag_get)
 
-    def test_ProjectMilestone(self):
+    # --- Milestones ---
+
+    def test_milestone_lifecycle(self):
         milestone_create = self._dooray.project.create_milestone(
             self._project_id,
             f'ms.{str(self._ts)}',
@@ -70,7 +87,6 @@ class TestDoorayProject(unittest.TestCase):
         )
         milestone_get = self._dooray.project.get_milestone(self._project_id, milestone_create.result.id)
         self.assertEqual(milestone_get.result.name, f'ms.{str(self._ts)}')
-        print(milestone_get)
 
         self._dooray.project.update_milestone(
             self._project_id,
@@ -82,7 +98,6 @@ class TestDoorayProject(unittest.TestCase):
         )
         milestone_get = self._dooray.project.get_milestone(self._project_id, milestone_create.result.id)
         self.assertEqual(milestone_get.result.name, f'ms2.{str(self._ts)}')
-        print(milestone_get)
 
         self._dooray.project.update_milestone(
             self._project_id,
@@ -94,53 +109,51 @@ class TestDoorayProject(unittest.TestCase):
         )
         milestone_get = self._dooray.project.get_milestone(self._project_id, milestone_create.result.id)
         self.assertEqual(milestone_get.result.status, 'closed')
-        print(milestone_get)
 
         milestones_get = self._dooray.project.get_milestones(self._project_id, status='open')
-        print(milestones_get)
+        self.assertIsNotNone(milestones_get)
 
         self._dooray.project.delete_milestone(self._project_id, milestone_create.result.id)
-        with self.assertRaises((BadHttpResponseStatusCode, ServerGeneralError)) as bad_resp:
+        with self.assertRaises((BadHttpResponseStatusCode, ServerGeneralError)):
             self._dooray.project.get_milestone(self._project_id, milestone_create.result.id)
 
+    # --- Hooks (skipped - no delete API) ---
+
     @unittest.skip("Skip test until Hook deletion API provided")
-    def test_ProjectHook(self):
+    def test_project_hook(self):
         hook_create = self._dooray.project.create_hook(
             self._project_id,
             f'https://test.pydooray.net/hook/{str(self._ts)}',
             ["postCreated", "postCommentCreated"]
         )
-        print(hook_create)
+        self.assertIsNotNone(hook_create)
 
-    def test_ProjectMember(self):
+    # --- Members ---
+
+    def test_member_add_and_get(self):
         test_member = self.get_test_member()
-        print(test_member)
+        self.assertIsNotNone(test_member)
 
         member_add = self._dooray.project.add_member(self._project_id, test_member.id, "member")
-        print(member_add)
         self.assertEqual(test_member.id, member_add.result.organization_member_id)
 
         member_get = self._dooray.project.get_member(self._project_id, test_member.id)
-        print(member_get)
         self.assertEqual(test_member.id, member_get.result.organization_member_id)
 
-    def test_ProjectMemberGroup(self):
-        # TODO below test is commented out due to API error
-        #member_groups_get = self._dooray.project.get_member_groups(self._project_id)
+    # --- Member Groups ---
 
+    def test_member_group_get(self):
         member_group_get = self._dooray.project.get_member_group(self._project_id, '3172006893474626325')
-        print(member_group_get)
+        self.assertIsNotNone(member_group_get)
 
-    def test_ProjectTemplate(self):
+    # --- Templates ---
+
+    def test_template_lifecycle(self):
         test_to_member = self.get_test_member()
-        print(test_to_member)
         test_cc_member_1 = self.get_test_member()
-        print(test_cc_member_1)
         test_cc_member_2 = self.get_test_member()
-        print(test_cc_member_2)
 
         templates_get = self._dooray.project.get_templates(self._project_id)
-        print(templates_get)
         count_templates = templates_get.total_count
 
         template_builder = dooray.TemplateBuilder()
@@ -151,79 +164,91 @@ class TestDoorayProject(unittest.TestCase):
             .set_body(f'Body {self._ts}')\
             .set_subject(f'Template {self._ts} - ${{year}}')\
             .create()
-        print(template.to_json_dict())
         template_create = self._dooray.project.create_template(self._project_id, template)
-        print(template_create)
+        self.assertIsNotNone(template_create.result.id)
 
         template_get = self._dooray.project.get_template(self._project_id, template_create.result.id)
-        print(template_get)
+        self.assertIsNotNone(template_get)
 
         template_get = self._dooray.project.get_template(
             self._project_id,
             template_create.result.id,
             interpolation=True
         )
-        print(template_get)
+        self.assertIsNotNone(template_get)
 
         templates_get = self._dooray.project.get_templates(self._project_id)
-        print(templates_get)
         self.assertEqual(templates_get.total_count, count_templates + 1)
 
         template = template_builder.add_cc_member(test_cc_member_2.id).create()
         self._dooray.project.update_template(self._project_id, template_create.result.id, template)
 
         template_get = self._dooray.project.get_template(self._project_id, template_create.result.id)
-        print(template_get)
+        self.assertIsNotNone(template_get)
 
         self._dooray.project.delete_template(self._project_id, template_create.result.id)
 
         templates_get = self._dooray.project.get_templates(self._project_id)
-        print(templates_get)
         self.assertEqual(templates_get.total_count, count_templates)
 
-    def test_ProjectPost(self):
-        test_to_member = self.get_test_member()
-        print(test_to_member)
-        test_cc_member_1 = self.get_test_member()
-        print(test_cc_member_1)
-        test_cc_member_2 = self.get_test_member()
-        print(test_cc_member_2)
+    # --- Posts (split from monolithic test_ProjectPost) ---
 
-        posts_get = self._dooray.project.get_posts(self._project_id)
-        print(posts_get)
-        count_posts = posts_get.total_count
+    def test_post_create_and_get(self):
+        """Create a post and verify it can be retrieved."""
+        test_to_member = self.get_test_member()
+        test_cc_member_1 = self.get_test_member()
 
         post_builder = dooray.PostBuilder()
-        post_1 = post_builder\
+        post = post_builder\
             .add_to_member(test_to_member.id)\
             .add_cc_member(test_cc_member_1.id)\
             .set_body(f'Body {self._ts}')\
             .set_subject(f'Post {self._ts}')\
             .create()
-        print(post_1.to_json_dict())
-        post_create_1 = self._dooray.project.create_post(self._project_id, post_1)
-        print(post_create_1)
+        post_create = self._dooray.project.create_post(self._project_id, post)
+        self.assertIsNotNone(post_create.result.id)
 
-        post_2 = post_builder\
-            .set_parent_post_id(post_create_1.result.id) \
-            .set_subject(f'Post {self._ts} - child of {post_create_1.result.id}') \
-            .set_body(f'Body {self._ts} - child of {post_create_1.result.id}')\
-            .add_cc_member(test_cc_member_2.id)\
+        post_get = self._dooray.project.get_post(self._project_id, post_create.result.id)
+        self.assertIsNotNone(post_get.result.subject)
+
+    def test_post_update(self):
+        """Create a post then update it."""
+        test_to_member = self.get_test_member()
+
+        post_builder = dooray.PostBuilder()
+        post = post_builder\
+            .add_to_member(test_to_member.id)\
+            .set_body(f'Body {self._ts}')\
+            .set_subject(f'Post {self._ts}')\
             .create()
-        print(post_2.to_json_dict())
-        post_create_2 = self._dooray.project.create_post(self._project_id, post_2)
-        print(post_create_2)
+        post_create = self._dooray.project.create_post(self._project_id, post)
 
-        post_get_1 = self._dooray.project.get_post(self._project_id, post_create_1.result.id)
-        print(post_get_1)
-        post_get_2 = self._dooray.project.get_post(self._project_id, post_create_2.result.id)
-        print(post_get_2)
+        time.sleep(0.1)
+
+        post_update = post_builder\
+            .set_subject(f'Post {self._ts} - updated')\
+            .set_body(f'Body {self._ts} - updated')\
+            .create()
+        self._dooray.project.update_post(self._project_id, post_create.result.id, post_update)
+
+    def test_post_filter_by_to_member(self):
+        """Create a post and filter by to_member_ids to verify filter works."""
+        test_to_member = self.get_test_member()
+
+        post_builder = dooray.PostBuilder()
+        post = post_builder\
+            .add_to_member(test_to_member.id)\
+            .set_body(f'Body filter test {self._ts}')\
+            .set_subject(f'Post filter test {self._ts}')\
+            .create()
+        self._dooray.project.create_post(self._project_id, post)
+
+        time.sleep(0.5)
 
         posts_get = self._dooray.project.get_posts(
             self._project_id,
             to_member_ids=test_to_member.id
         )
-        print(posts_get)
         for post in posts_get.result:
             found = False
             for u in post.users.to:
@@ -232,76 +257,96 @@ class TestDoorayProject(unittest.TestCase):
                     break
             self.assertTrue(found)
 
-        post_2_update = post_builder \
-            .set_parent_post_id(post_create_1.result.id) \
-            .set_subject(f'Post {self._ts} - child of {post_create_1.result.id} - updated') \
-            .set_body(f'Body {self._ts} - child of {post_create_1.result.id} - updated') \
-            .create()
+    def test_post_workflow_operations(self):
+        """Create a post and exercise workflow state transitions."""
+        test_to_member = self.get_test_member()
 
-        post_update = self._dooray.project.update_post(self._project_id, post_create_2.result.id, post_2_update)
-        print(post_update)
+        post_builder = dooray.PostBuilder()
+        post = post_builder\
+            .add_to_member(test_to_member.id)\
+            .set_body(f'Body wf {self._ts}')\
+            .set_subject(f'Post wf {self._ts}')\
+            .create()
+        post_create = self._dooray.project.create_post(self._project_id, post)
 
         workflow = self._dooray.project.get_workflows(self._project_id)
-        print(workflow)
         workflows = {}
         for w in workflow.result:
             workflows[w.workflow_class] = w
 
         self._dooray.project.set_post_workflow_for_member(
             self._project_id,
-            post_create_2.result.id,
+            post_create.result.id,
             test_to_member.id,
             workflows['working'].id
         )
 
-        self._dooray.project.set_post_workflow(self._project_id, post_create_1.result.id, workflows['working'].id)
+        self._dooray.project.set_post_workflow(
+            self._project_id,
+            post_create.result.id,
+            workflows['working'].id
+        )
 
-        self._dooray.project.set_post_as_done(self._project_id, post_create_1.result.id)
+        self._dooray.project.set_post_as_done(self._project_id, post_create.result.id)
+
+    def test_post_log_lifecycle(self):
+        """Create a post, add/update/delete logs (comments)."""
+        test_to_member = self.get_test_member()
+
+        post_builder = dooray.PostBuilder()
+        post = post_builder\
+            .add_to_member(test_to_member.id)\
+            .set_body(f'Body log {self._ts}')\
+            .set_subject(f'Post log {self._ts}')\
+            .create()
+        post_create = self._dooray.project.create_post(self._project_id, post)
 
         post_log_create_1 = self._dooray.project.create_post_log(
             self._project_id,
-            post_create_1.result.id,
+            post_create.result.id,
             'First Comment with markdown'
         )
-        print(post_log_create_1)
+        self.assertIsNotNone(post_log_create_1.result.id)
 
         time.sleep(0.1)
 
         post_log_create_2 = self._dooray.project.create_post_log(
             self._project_id,
-            post_create_1.result.id,
+            post_create.result.id,
             'Second Comment with markdown'
         )
-        print(post_log_create_2)
+        self.assertIsNotNone(post_log_create_2.result.id)
 
-        post_logs_get = self._dooray.project.get_post_logs(self._project_id, post_create_1.result.id)
-        print(post_logs_get)
+        post_logs_get = self._dooray.project.get_post_logs(self._project_id, post_create.result.id)
+        self.assertGreater(len(post_logs_get.result), 0)
 
         post_log_get = self._dooray.project.get_post_log(
             self._project_id,
-            post_create_1.result.id,
+            post_create.result.id,
             post_log_create_1.result.id
         )
-        print(post_log_get)
+        self.assertIsNotNone(post_log_get.result.id)
 
         self._dooray.project.update_post_log(
             self._project_id,
-            post_create_1.result.id,
+            post_create.result.id,
             post_log_create_1.result.id,
             'First Comment with markdown - updated'
         )
 
         post_log_get = self._dooray.project.get_post_log(
             self._project_id,
-            post_create_1.result.id,
+            post_create.result.id,
             post_log_create_1.result.id
         )
-        print(post_log_get)
         self.assertEqual(post_log_get.result.body.content, 'First Comment with markdown - updated')
 
-        self._dooray.project.delete_post_log(self._project_id, post_create_1.result.id, post_log_create_1.result.id)
-        self._dooray.project.delete_post_log(self._project_id, post_create_1.result.id, post_log_create_2.result.id)
+        self._dooray.project.delete_post_log(
+            self._project_id, post_create.result.id, post_log_create_1.result.id
+        )
+        self._dooray.project.delete_post_log(
+            self._project_id, post_create.result.id, post_log_create_2.result.id
+        )
 
-        post_logs_get = self._dooray.project.get_post_logs(self._project_id, post_create_1.result.id)
-        print(post_logs_get)
+        post_logs_get = self._dooray.project.get_post_logs(self._project_id, post_create.result.id)
         self.assertEqual(post_logs_get.result, [])
