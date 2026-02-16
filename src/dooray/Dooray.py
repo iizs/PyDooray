@@ -132,8 +132,14 @@ class Dooray(DoorayBase):
             params['page'] = page
         if size is not None:
             params['size'] = size
-        # TODO when no parameter given, it returns bad request.
-        #  but with name='' or userCode='' parameter, it returns all members. is it intended?
+
+        # Dooray API requires at least one filter parameter; returns HTTP 400 otherwise.
+        filter_keys = {'name', 'userCode', 'userCodeExact', 'idProviderUserId', 'externalEmailAddresses'}
+        if not any(k in params for k in filter_keys):
+            raise ValueError(
+                "get_members() requires at least one filter parameter: "
+                "name, user_code, user_code_exact, id_provider_user_id, or external_emails"
+            )
 
         resp = self._request('GET', f'/common/v1/members', params=params)
 
@@ -946,7 +952,7 @@ class DoorayProject(DoorayBase):
         if cc_member_ids is not None:
             params['ccMemberIds'] = cc_member_ids
         if tag_ids is not None:
-            params['ccMemberIds'] = tag_ids
+            params['tagIds'] = tag_ids
         if parent_post_id is not None:
             params['parentPostId'] = parent_post_id
         if post_workflow_ids is not None:

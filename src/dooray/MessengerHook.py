@@ -60,8 +60,7 @@ class MessengerHook:
         if attachments is not None:
             payload['attachments'] = attachments
         resp = requests.post(self._hook_url, json=payload, headers=self._request_header)
-        if resp.status_code != 200:
-            pass
+        return resp.status_code == 200
 
 
 class MessengerHookAttachments:
