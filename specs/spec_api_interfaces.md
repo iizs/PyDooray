@@ -93,8 +93,9 @@ Dooray(
 | `size` | `int` | `size` | `20` | Page size (max 100) |
 
 * **Returns:** `DoorayListResponse` of `Member`
-* **Known issue:** Dooray API returns bad request when no query parameter is given.
-* **Workaround (REQUIRED):** If no filter parameters (`name`, `user_code`, `user_code_exact`, `id_provider_user_id`, `external_emails`) are provided, the library must automatically inject `name=''` as a default query parameter so that `get_members()` works without requiring the caller to pass an explicit workaround.
+* **Constraint:** Dooray API requires at least one filter parameter (`name`, `userCode`, `userCodeExact`, `idProviderUserId`, `externalEmailAddresses`). Calling without any filter returns HTTP 400.
+* **Validation (REQUIRED, P1):** If no filter parameters (`name`, `user_code`, `user_code_exact`, `id_provider_user_id`, `external_emails`) are provided, the library must raise `ValueError` with a descriptive message explaining that at least one filter parameter is required. This prevents silent API errors and guides the caller to provide explicit search criteria.
+* **Previous workaround (REMOVED, 2026-02-16):** The library previously auto-injected `name=''` as a default parameter, but Dooray API no longer accepts empty-string filter values (returns HTTP 400). The workaround has been replaced with explicit validation.
 
 ### 3.3 `get_incoming_hook(incoming_hook_id)` — Common > IncomingHooks
 

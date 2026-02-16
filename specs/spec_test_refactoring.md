@@ -255,9 +255,9 @@ class TestDoorayCommon(unittest.TestCase):
 
 | Test Method | Validates |
 |---|---|
-| `test_get_members_no_filter` | Auto-injects `name=''` when no filter params given |
-| `test_get_members_with_name` | Does NOT inject `name=''` when `name` is provided |
-| `test_get_members_with_user_code` | Does NOT inject when `user_code` is provided |
+| `test_get_members_no_filter_raises` | **P1: Raises `ValueError` when no filter params given** |
+| `test_get_members_with_name` | Normal call with `name` filter succeeds |
+| `test_get_members_with_user_code` | Normal call with `user_code` filter succeeds |
 | `test_get_members_with_external_emails_str` | Passes string directly |
 | `test_get_members_with_external_emails_list` | Joins list with commas |
 | `test_get_members_pagination` | Passes `page` and `size` params |
