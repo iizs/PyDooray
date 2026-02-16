@@ -510,7 +510,7 @@ Using `pytestmark` applies the integration marker to **all** functions in the fi
 | `test_project_is_creatable` | `dooray_client`, `project_id` | Existing code not creatable, suffixed code is |
 | `test_workflows` | `dooray_client`, `project_id` | Get workflows, verify non-empty |
 | `test_milestone_lifecycle` | `dooray_client`, `project_id` | Create → get → update → close → delete milestone |
-| `test_member_add_and_get` | `dooray_client`, `project_id`, `test_member` | Add member to project, verify get |
+| `test_member_add_and_get` | `dooray_client`, `project_id`, `test_member` | Add member to project, verify via get (see §4.4) |
 | `test_member_group_get` | `dooray_client`, `project_id` | Get specific member group |
 | `test_template_lifecycle` | `dooray_client`, `project_id` | Create → get → interpolate → update → delete template |
 | `test_post_create_and_get` | `dooray_client`, `project_id` | Create post with to/cc, verify get |
@@ -559,6 +559,28 @@ def _api_cooldown():
 ```
 
 This runs after each test function automatically.
+
+#### 4.4 Known API Issue: `add_member()` Response
+
+**Issue:** Dooray `POST /project/v1/projects/{id}/members` returns `organizationMemberId: null` in the response body. Whether this is intentional or a bug is unknown.
+
+**Impact:** The previous assertion `test_member.id == member_add.result.organization_member_id` always fails because `organization_member_id` is `null`.
+
+**Resolution:** Verify member addition through a two-step approach:
+1. `add_member()` call completes without raising an exception → API accepted the request
+2. `get_member()` with the same member ID returns a valid result → member was actually added
+
+```python
+def test_member_add_and_get(dooray_client, project_id, test_member):
+    # Step 1: add_member succeeds (no exception)
+    dooray_client.project.add_member(project_id, test_member.id, "member")
+
+    # Step 2: get_member confirms the member was added
+    member_get = dooray_client.project.get_member(project_id, test_member.id)
+    assert test_member.id == member_get.result.organization_member_id
+```
+
+**Rationale:** `get_member()` returns the correct `organization_member_id`. The null-response issue only affects the `add_member()` response. By verifying through `get_member()`, we confirm the member was actually persisted without relying on the broken response field.
 
 ---
 

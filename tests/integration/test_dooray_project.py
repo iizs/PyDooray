@@ -106,9 +106,11 @@ def test_project_hook(dooray_client, project_id):
 # --- Members ---
 
 def test_member_add_and_get(dooray_client, project_id, test_member):
-    member_add = dooray_client.project.add_member(project_id, test_member.id, "member")
-    assert test_member.id == member_add.result.organization_member_id
+    # Step 1: add_member succeeds (no exception)
+    # Note: add_member response returns organizationMemberId as null (known API issue, see spec §4.4)
+    dooray_client.project.add_member(project_id, test_member.id, "member")
 
+    # Step 2: get_member confirms the member was added
     member_get = dooray_client.project.get_member(project_id, test_member.id)
     assert test_member.id == member_get.result.organization_member_id
 
