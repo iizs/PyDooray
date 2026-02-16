@@ -378,6 +378,32 @@ Refactor the existing monolithic `TestDoorayProject` class. The key change: spli
 
 All integration test classes and methods must be decorated with `@pytest.mark.integration`.
 
+#### `get_test_member()` Helper (FIX REQUIRED, P1)
+
+**Previous implementation:** Called `get_members(user_code='')` to fetch all members and pick one randomly. This no longer works because Dooray API rejects empty-string filter values (HTTP 400).
+
+**New implementation:**
+
+```python
+TEST_MEMBER_NAMES = ['mark', 'bess', 'rick', 'kirin']
+
+def get_test_member(self):
+    name = random.choice(TEST_MEMBER_NAMES)
+    members = self._dooray.get_members(name=name)
+    if members.total_count == 0:
+        raise RuntimeError(f"No member found with name='{name}'. "
+                           "Verify test member accounts exist in the Dooray organization.")
+    return members.result[0]
+```
+
+**Changes:**
+- Remove `seed` parameter (no longer needed; randomness comes from `random.choice`)
+- Remove `user_code=''` workaround call
+- Select a name randomly from known test members (`TEST_MEMBER_NAMES`)
+- Call `get_members(name=<selected>)` with a valid filter
+- Raise `RuntimeError` with descriptive message if no member is found (system issue, account deleted, etc.)
+- Return the first matching member (no index randomization needed since input is already random)
+
 **File:** `tests/integration/conftest.py`
 
 ```python

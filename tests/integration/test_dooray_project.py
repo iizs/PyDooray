@@ -12,6 +12,7 @@ from dooray.DoorayExceptions import BadHttpResponseStatusCode, ServerGeneralErro
 from tests.tokens import API_TOKEN
 
 MEMBER_ID_FOR_TEST = '2492022087928904640'
+TEST_MEMBER_NAMES = ['mark', 'bess', 'rick', 'kirin']
 
 
 @pytest.mark.integration
@@ -31,12 +32,15 @@ class TestDoorayProject(unittest.TestCase):
     def tearDown(self):
         time.sleep(0.5)
 
-    def get_test_member(self, seed=None):
-        if seed is not None:
-            random.seed(self._ts)
-        members = self._dooray.get_members(user_code='')
-        idx = random.randint(0, min(members.total_count, members.size) - 1)
-        return members.result[idx]
+    def get_test_member(self):
+        name = random.choice(TEST_MEMBER_NAMES)
+        members = self._dooray.get_members(name=name)
+        if members.total_count == 0:
+            raise RuntimeError(
+                f"No member found with name='{name}'. "
+                "Verify test member accounts exist in the Dooray organization."
+            )
+        return members.result[0]
 
     # --- Project ---
 
