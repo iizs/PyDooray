@@ -58,3 +58,42 @@ Use these commands to verify the code:
 - **Build:** `echo "Update this with your build command"`
 - **Test:** `echo "Update this with your test command"`
 - **Lint:** `echo "Update this with your lint command"`
+
+## 4. Git Worktree & Environment Guidelines
+
+To ensure a seamless and isolated development process, especially for PyPI package development and automated testing, follow these strictly:
+
+### 1. Worktree Isolation & Base Point
+- **Isolation**: Always use `git worktree` for new features or bug fixes to maintain a clean working directory.
+- **Base Point**: Unless specified otherwise, create a new worktree based on the user's **current HEAD** to preserve the latest context.
+- **Branching**: Do not modify the user's active branch directly. Create a descriptive feature branch (e.g., `feat/ai-implementation`) from the current HEAD within the worktree.
+
+### 2. Environment Setup & Dependency Management
+- **Python Version Selection**: 
+    - Before creating a venv, **check the `pyproject.toml` or `setup.py`** for the `requires-python` specification.
+    - If the project requires a specific version (e.g., Python 3.11, PyPy), ensure you use the correct executable.
+    - **Crucial**: If the required version is ambiguous or if multiple versions are available, **ask the user explicitly** which Python executable/version to use for the worktree.
+- **Local venv**: Initialize a dedicated virtual environment (`.venv`) inside each worktree directory.
+- **Dependency Installation**: After activating the `.venv`, install dependencies in the following order:
+    1. `pip install --upgrade pip`
+    2. `pip install -r requirements.txt` (Core dependencies)
+    3. `pip install -r tests/requirements.txt` (Test-specific tools like pytest, mock, etc.)
+    4. `pip install -e .` (Install the package in **Editable Mode** to ensure code changes in the worktree are immediately reflected).
+
+### 3. Secrets & Configuration Sharing
+- **Symbolic Links for Tests**: To run tests, you must access sensitive configuration files that are not committed to the repository. **Create a symbolic link** for the following file from the main repository root to the worktree root:
+    - **Target File**: `tests/tokens.py`
+    - **Command**: `ln -s ../[main-folder-name]/tests/tokens.py tests/tokens.py`
+- **Security**: 
+    - Ensure that the symlink itself is not committed.
+    - Never attempt to create a physical copy of `tokens.py` within the worktree to avoid accidental commits of sensitive data.
+    - If the file is missing in the main directory, explicitly ask the user for the necessary credentials before proceeding with tests.
+
+### 4. Testing & Verification
+- **Internal Execution**: Run all tests and scripts strictly within the worktree's `.venv`.
+- **Validation**: Verify that the "Editable Install" is working correctly so that your logic changes are being tested, not the version in the main folder.
+- **Reporting**: Only report progress or request a merge after all tests in `tests/` pass successfully within the isolated environment.
+
+### 5. Cleanup
+- Upon successful completion and commit, notify the user.
+- With user approval, propose to remove the worktree (`git worktree remove`) and delete the temporary feature branch to keep the repository tidy.
