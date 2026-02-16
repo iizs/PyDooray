@@ -356,70 +356,209 @@ class TestDoorayCommon(unittest.TestCase):
 
 MOVE existing `tests/test_MessengerHookAttachments.py` as-is. No changes needed.
 
-### 4.3 Integration Test Refactoring
+### 4.3 Integration Test Refactoring (REVISED, 2026-02-16)
 
-**File:** `tests/integration/test_dooray_project.py`
+#### Design Decision: `unittest.TestCase` → Pure pytest Functions
 
-Refactor the existing monolithic `TestDoorayProject` class. The key change: split `test_ProjectPost` (which covers Post CRUD + Workflow + Post Logs) into focused methods.
+The previous integration tests used `unittest.TestCase` with `setUp`/`tearDown`. This caused:
+- `setUp` runs **per test method** → project created N times if `project_id = None`
+- No way to share expensive resources (project, member lookups) across tests
+- `unittest.TestCase` does not support pytest fixture `scope` parameter
 
-| Old Method | New Methods |
-|---|---|
-| `test_Project` | `test_project_get`, `test_project_is_creatable` |
-| `test_ProjectMilestone` | `test_milestone_lifecycle` (keep as-is, already reasonable) |
-| `test_ProjectMember` | `test_member_add_and_get` (keep as-is) |
-| `test_ProjectMemberGroup` | `test_member_group_get` (keep as-is) |
-| `test_ProjectTemplate` | `test_template_lifecycle` (keep as-is, already reasonable) |
-| `test_ProjectPost` | Split into: |
-| | `test_post_create_and_get` |
-| | `test_post_update` |
-| | `test_post_filter_by_to_member` |
-| | `test_post_workflow_operations` |
-| | `test_post_log_lifecycle` |
+**New approach:** Pure pytest functions + module-scoped fixtures.
 
-All integration test classes and methods must be decorated with `@pytest.mark.integration`.
-
-#### `get_test_member()` Helper (FIX REQUIRED, P1)
-
-**Previous implementation:** Called `get_members(user_code='')` to fetch all members and pick one randomly. This no longer works because Dooray API rejects empty-string filter values (HTTP 400).
-
-**New implementation:**
-
-```python
-TEST_MEMBER_NAMES = ['mark', 'bess', 'rick', 'kirin']
-
-def get_test_member(self):
-    name = random.choice(TEST_MEMBER_NAMES)
-    members = self._dooray.get_members(name=name)
-    if members.total_count == 0:
-        raise RuntimeError(f"No member found with name='{name}'. "
-                           "Verify test member accounts exist in the Dooray organization.")
-    return members.result[0]
-```
-
-**Changes:**
-- Remove `seed` parameter (no longer needed; randomness comes from `random.choice`)
-- Remove `user_code=''` workaround call
-- Select a name randomly from known test members (`TEST_MEMBER_NAMES`)
-- Call `get_members(name=<selected>)` with a valid filter
-- Raise `RuntimeError` with descriptive message if no member is found (system issue, account deleted, etc.)
-- Return the first matching member (no index randomization needed since input is already random)
+#### Fixture Strategy
 
 **File:** `tests/integration/conftest.py`
 
 ```python
 """Integration test configuration. Requires valid API token."""
+import random
+import time
 import pytest
 import dooray
 from tests.tokens import API_TOKEN
 
-@pytest.fixture
+TEST_MEMBER_NAMES = ['mark', 'bess', 'rick', 'kirin']
+
+
+@pytest.fixture(scope="module")
 def dooray_client():
+    """Dooray client shared across all tests in a module."""
     return dooray.Dooray(API_TOKEN)
 
-@pytest.fixture
-def project_id():
-    return "3172006893461634976"
+
+@pytest.fixture(scope="module")
+def project_id(dooray_client):
+    """Create a test project once per module.
+
+    Returns the project ID. The project persists after tests
+    (Dooray API does not provide a project delete endpoint).
+    """
+    ts = int(time.time())
+    project = dooray_client.project.create(
+        f'PyDooray-{ts}',
+        f'Integration test {ts}',
+        'private'
+    )
+    return project.result.id
+
+
+@pytest.fixture(scope="module")
+def test_member(dooray_client):
+    """Look up a random known test member once per module.
+
+    Raises RuntimeError if the member is not found.
+    """
+    name = random.choice(TEST_MEMBER_NAMES)
+    members = dooray_client.get_members(name=name)
+    if members.total_count == 0:
+        raise RuntimeError(
+            f"No member found with name='{name}'. "
+            "Verify test member accounts exist in the Dooray organization."
+        )
+    return members.result[0]
 ```
+
+**Fixture scope rationale:**
+
+| Fixture | Scope | Why |
+|---|---|---|
+| `dooray_client` | `module` | Token doesn't change; avoid creating client per test |
+| `project_id` | `module` | Project creation is expensive; no delete API to clean up |
+| `test_member` | `module` | Member lookup is an API call; result is stable within a session |
+
+**Note:** Fixtures with `scope="module"` are created once per test file and shared across all test functions in that file. This means `project_id` creates exactly **one** project per `python -m pytest tests/integration` run (per file that uses it).
+
+#### Member Lookup Helpers
+
+Two plain functions (not fixtures) for fetching test members. Defined in `conftest.py`, imported by test files.
+
+```python
+def get_random_member(dooray_client):
+    """Fetch a random test member from TEST_MEMBER_NAMES.
+
+    Use when the test doesn't care which specific member is used
+    (e.g., assigning a post recipient, adding a project member).
+    Each call may return a different member.
+
+    :param dooray_client: Dooray client instance
+    :returns: Member object
+    :raises RuntimeError: if no member found
+    """
+    name = random.choice(TEST_MEMBER_NAMES)
+    members = dooray_client.get_members(name=name)
+    if members.total_count == 0:
+        raise RuntimeError(
+            f"No member found with name='{name}'. "
+            "Verify test member accounts exist in the Dooray organization."
+        )
+    return members.result[0]
+
+
+def get_member_by_name(dooray_client, name):
+    """Fetch a specific test member by name.
+
+    Use when the test requires a deterministic, specific member
+    (e.g., verifying filter results for a known user, testing with
+    a particular member's permissions).
+
+    :param dooray_client: Dooray client instance
+    :param name: Member name to search for (must exist in Dooray organization)
+    :returns: Member object
+    :raises RuntimeError: if no member found with the given name
+    """
+    members = dooray_client.get_members(name=name)
+    if members.total_count == 0:
+        raise RuntimeError(
+            f"No member found with name='{name}'. "
+            "Verify the member account exists in the Dooray organization."
+        )
+    return members.result[0]
+```
+
+**Usage guidance:**
+
+| Scenario | Function | Example |
+|---|---|---|
+| Post recipient (any member is fine) | `get_random_member(dc)` | `to_member = get_random_member(dc)` |
+| Multiple distinct members (to + cc) | `get_random_member(dc)` × N | May return same member; acceptable for integration tests |
+| Filter verification for specific user | `get_member_by_name(dc, 'kirin')` | Verify `to_member_ids` filter returns posts for 'kirin' |
+| Permission-specific test | `get_member_by_name(dc, 'mark')` | Test with a known admin/member role |
+
+#### Test File Structure
+
+**File:** `tests/integration/test_dooray_project.py`
+
+All tests are **plain `pytest` functions** (no class). Each receives fixtures via parameter injection. All marked with `@pytest.mark.integration`.
+
+```python
+import pytest
+import time
+import dooray
+from dooray.DoorayExceptions import BadHttpResponseStatusCode, ServerGeneralError
+from tests.integration.conftest import get_random_member
+
+pytestmark = pytest.mark.integration
+```
+
+Using `pytestmark` applies the integration marker to **all** functions in the file without decorating each one.
+
+| Test Function | Fixtures Used | Description |
+|---|---|---|
+| `test_project_get` | `dooray_client`, `project_id` | Get project, verify code exists |
+| `test_project_is_creatable` | `dooray_client`, `project_id` | Existing code not creatable, suffixed code is |
+| `test_workflows` | `dooray_client`, `project_id` | Get workflows, verify non-empty |
+| `test_milestone_lifecycle` | `dooray_client`, `project_id` | Create → get → update → close → delete milestone |
+| `test_member_add_and_get` | `dooray_client`, `project_id`, `test_member` | Add member to project, verify get |
+| `test_member_group_get` | `dooray_client`, `project_id` | Get specific member group |
+| `test_template_lifecycle` | `dooray_client`, `project_id` | Create → get → interpolate → update → delete template |
+| `test_post_create_and_get` | `dooray_client`, `project_id` | Create post with to/cc, verify get |
+| `test_post_update` | `dooray_client`, `project_id` | Create then update post |
+| `test_post_filter_by_to_member` | `dooray_client`, `project_id` | Create post, filter by to_member_ids |
+| `test_post_workflow_operations` | `dooray_client`, `project_id` | Workflow transitions: set_for_member → set → done |
+| `test_post_log_lifecycle` | `dooray_client`, `project_id` | Create → get → update → delete post logs |
+
+**Skipped tests** (no delete API available): `test_project_email`, `test_project_tags`, `test_project_hook` — keep with `@pytest.mark.skip(reason="...")`
+
+**File:** `tests/integration/test_messenger_hook.py`
+
+Also convert from `unittest.TestCase` to pure pytest functions with fixture injection.
+
+```python
+import pytest
+import time
+import dooray
+from tests.tokens import MESSENGER_HOOK_URL
+
+pytestmark = pytest.mark.integration
+
+@pytest.fixture(scope="module")
+def hook():
+    return dooray.MessengerHook(MESSENGER_HOOK_URL)
+
+@pytest.fixture(scope="module")
+def custom_hook():
+    return dooray.MessengerHook(
+        MESSENGER_HOOK_URL,
+        hook_name="Under Construction",
+        hook_icon="https://nhnent.dooray.com/messenger/v1/api/stickers/16/01_on_110px"
+    )
+```
+
+#### `sleep` Between Tests
+
+Replace `tearDown` with `time.sleep()` calls only where needed (API rate limiting), using `@pytest.fixture(autouse=True)`:
+
+```python
+@pytest.fixture(autouse=True)
+def _api_cooldown():
+    """Pause between tests to avoid Dooray API rate limiting."""
+    yield
+    time.sleep(0.5)
+```
+
+This runs after each test function automatically.
 
 ---
 
