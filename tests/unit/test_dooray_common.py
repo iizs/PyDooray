@@ -16,19 +16,12 @@ class TestDoorayCommon(unittest.TestCase):
         mock_resp.json.return_value = json_data
         return mock_resp
 
-    @patch("requests.request")
-    def test_get_members_no_filter(self, mock_request):
-        """P1: get_members() auto-injects name='' when no filters given."""
-        mock_request.return_value = self._make_mock_resp(MEMBER_RESPONSE)
+    def test_get_members_no_filter_raises(self):
+        """P1: get_members() raises ValueError when no filter params given."""
+        with self.assertRaises(ValueError) as ctx:
+            self._dooray.get_members()
 
-        result = self._dooray.get_members()
-
-        call_kwargs = mock_request.call_args
-        params = call_kwargs.kwargs["params"]
-        self.assertIn("name", params)
-        self.assertEqual(params["name"], "")
-        self.assertEqual(len(result.result), 1)
-        self.assertEqual(result.result[0].name, "Test User")
+        self.assertIn("at least one filter parameter", str(ctx.exception))
 
     @patch("requests.request")
     def test_get_members_with_name(self, mock_request):

@@ -133,11 +133,13 @@ class Dooray(DoorayBase):
         if size is not None:
             params['size'] = size
 
-        # Dooray API returns bad request when no filter parameter is given.
-        # Inject name='' as a workaround to allow get_members() without explicit filters.
+        # Dooray API requires at least one filter parameter; returns HTTP 400 otherwise.
         filter_keys = {'name', 'userCode', 'userCodeExact', 'idProviderUserId', 'externalEmailAddresses'}
         if not any(k in params for k in filter_keys):
-            params['name'] = ''
+            raise ValueError(
+                "get_members() requires at least one filter parameter: "
+                "name, user_code, user_code_exact, id_provider_user_id, or external_emails"
+            )
 
         resp = self._request('GET', f'/common/v1/members', params=params)
 
