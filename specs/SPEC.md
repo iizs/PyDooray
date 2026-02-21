@@ -203,3 +203,4 @@ hook.send("Hello")
 | [spec_api_interfaces.md](./spec_api_interfaces.md) | All API method signatures with endpoints and parameters |
 | [spec_messenger_hook.md](./spec_messenger_hook.md) | MessengerHook and MessengerHookAttachments classes |
 | [spec_builders.md](./spec_builders.md) | PostBuilder and TemplateBuilder classes |
+| [spec_improvement_notes.md](./spec_improvement_notes.md) | Usability improvement notes and enhancement proposals |
