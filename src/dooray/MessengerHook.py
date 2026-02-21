@@ -23,10 +23,14 @@ class MessengerHook:
         :param user_agent: User agent of the request. Defaults to "PyDooray/Python"
         :type user_agent: str, optional
         """
-        assert hook_url is not None and isinstance(hook_url, str), hook_url
-        assert hook_name is not None and isinstance(hook_name, str), hook_name
-        assert hook_icon is not None and isinstance(hook_icon, str), hook_icon
-        assert user_agent is None or isinstance(user_agent, str), user_agent
+        if not isinstance(hook_url, str):
+            raise TypeError(hook_url)
+        if not isinstance(hook_name, str):
+            raise TypeError(hook_name)
+        if not isinstance(hook_icon, str):
+            raise TypeError(hook_icon)
+        if user_agent is not None and not isinstance(user_agent, str):
+            raise TypeError(user_agent)
 
         self._hook_url = hook_url
         self._hook_name = hook_name
@@ -49,8 +53,10 @@ class MessengerHook:
             Defaults to None
         :type attachments: list, optional
         """
-        assert text is not None and isinstance(text, str), text
-        assert attachments is None or isinstance(attachments, list), attachments
+        if not isinstance(text, str):
+            raise TypeError(text)
+        if attachments is not None and not isinstance(attachments, list):
+            raise TypeError(attachments)
 
         payload = {
             'botName': self._hook_name,

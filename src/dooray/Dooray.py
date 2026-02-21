@@ -21,9 +21,12 @@ class DoorayBase:
             endpoint=DEFAULT_ENDPOINT,
             user_agent="PyDooray/Python",
     ):
-        assert token is not None and isinstance(token, str), token
-        assert endpoint is not None and isinstance(endpoint, str), endpoint
-        assert user_agent is None or isinstance(user_agent, str), user_agent
+        if not isinstance(token, str):
+            raise TypeError(token)
+        if not isinstance(endpoint, str):
+            raise TypeError(endpoint)
+        if user_agent is not None and not isinstance(user_agent, str):
+            raise TypeError(user_agent)
 
         self._token = token
         self._endpoint = endpoint
@@ -183,7 +186,7 @@ class DoorayMessenger(DoorayBase):
         elif isinstance(member_ids, list):
             member_id_list.extend(member_ids)
         else:
-            assert False, member_ids
+            raise TypeError(member_ids)
         return member_id_list
 
     def get_channels(self):
@@ -467,8 +470,10 @@ class DoorayProject(DoorayBase):
         :type color: str
         :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.DoorayObjects.Relation`
         """
-        assert name is not None and isinstance(name, str), name
-        assert color is not None and isinstance(color, str), color
+        if not isinstance(name, str):
+            raise TypeError(name)
+        if not isinstance(color, str):
+            raise TypeError(color)
 
         data = {
             'name': name,
@@ -516,9 +521,12 @@ class DoorayProject(DoorayBase):
         :type end_at: str
         :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.DoorayObjects.Relation`
         """
-        assert name is not None and isinstance(name, str), name
-        assert start_at is not None and (isinstance(start_at, str) or isinstance(start_at, datetime)), start_at
-        assert end_at is not None and (isinstance(end_at, str) or isinstance(end_at, datetime)), end_at
+        if not isinstance(name, str):
+            raise TypeError(name)
+        if not isinstance(start_at, (str, datetime)):
+            raise TypeError(start_at)
+        if not isinstance(end_at, (str, datetime)):
+            raise TypeError(end_at)
 
         data = {
             'name': name,
@@ -598,8 +606,10 @@ class DoorayProject(DoorayBase):
         :type end_at: str
         :return: :class:`dooray.DoorayObjects.DoorayResponse`
         """
-        assert name is not None and isinstance(name, str), name
-        assert status is not None and isinstance(status, str), status
+        if not isinstance(name, str):
+            raise TypeError(name)
+        if not isinstance(status, str):
+            raise TypeError(status)
 
         data = {
             'name': name,
@@ -646,8 +656,10 @@ class DoorayProject(DoorayBase):
         :type send_events: list
         :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.DoorayObjects.Relation`
         """
-        assert url is not None and isinstance(url, str), url
-        assert send_events is not None and isinstance(send_events, list), send_events
+        if not isinstance(url, str):
+            raise TypeError(url)
+        if not isinstance(send_events, list):
+            raise TypeError(send_events)
         # TODO send_events must contains subset of
         #  [ "postCreated", "postCommentCreated", "postTagChanged", "postDueDateChanged", "postWorkflowChanged" ]
 
@@ -677,8 +689,10 @@ class DoorayProject(DoorayBase):
         :type role: 'member' | 'admin'
         :return: :class:`dooray.DoorayObjects.DoorayResponse` of :class:`dooray.Project.ProjectMember`
         """
-        assert member_id is not None and isinstance(member_id, str), member_id
-        assert role is not None and isinstance(role, str), role
+        if not isinstance(member_id, str):
+            raise TypeError(member_id)
+        if not isinstance(role, str):
+            raise TypeError(role)
 
         data = {
             'organizationMemberId': member_id,
