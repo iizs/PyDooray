@@ -1,3 +1,5 @@
+import copy
+
 import dooray.DoorayObjects
 from dooray.Member import Member
 
@@ -286,8 +288,11 @@ class PostBuilder:
     def create(self):
         """
         Create a new post object to be written.
+
+        Returns a deep copy of the internal state, allowing the builder
+        to be reused as a template for creating multiple similar objects.
         """
-        return self._post
+        return copy.deepcopy(self._post)
 
     def set_parent_post_id(self, parent_post_id):
         """
@@ -565,9 +570,12 @@ class TemplateBuilder:
 
     def create(self):
         """
-        Create a new post object to be written.
+        Create a new template object to be written.
+
+        Returns a deep copy of the internal state, allowing the builder
+        to be reused as a template for creating multiple similar objects.
         """
-        return self._template
+        return copy.deepcopy(self._template)
 
     def set_template_name(self, template_name):
         """

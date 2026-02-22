@@ -49,3 +49,28 @@ class TestMessengerHookAttachments(unittest.TestCase):
             .create(),
             [{'title': 'My title'}, {'titleLink': 'http://b.com', 'text': 'My text'}]
         )
+
+    def testBuilderReusability(self):
+        """create() returns a deep copy; builder can be reused."""
+        builder = dooray.MessengerHookAttachments.builder()\
+            .add_attachment(title='Base')
+
+        result1 = builder.create()
+        result2 = builder.create()
+
+        self.assertIsNot(result1, result2)
+        self.assertEqual(result1, result2)
+
+    def testBuilderMutationSafety(self):
+        """Mutating a created list does not affect subsequent creates."""
+        builder = dooray.MessengerHookAttachments.builder()\
+            .add_attachment(title='Base')
+
+        result1 = builder.create()
+        result1.append({'title': 'Extra'})
+        result1[0]['title'] = 'Mutated'
+
+        result2 = builder.create()
+
+        self.assertEqual(len(result2), 1)
+        self.assertEqual(result2[0]['title'], 'Base')

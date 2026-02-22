@@ -83,3 +83,32 @@ class TestTemplateBuilder(unittest.TestCase):
         self.assertNotIn("due_date", d)
         self.assertNotIn("milestone_id", d)
         self.assertNotIn("is_default", d)
+
+    def test_create_returns_independent_copy(self):
+        """create() returns a deep copy; builder state is not shared."""
+        builder = dooray.TemplateBuilder()\
+            .set_template_name("Template")\
+            .set_subject("Subject")\
+            .set_body("Body")\
+            .add_tag_id("tag-1")
+
+        template1 = builder.create()
+        template2 = builder.create()
+
+        self.assertIsNot(template1, template2)
+        self.assertEqual(template1.to_json_dict(), template2.to_json_dict())
+
+    def test_create_copy_is_mutation_safe(self):
+        """Mutating a created object does not affect subsequent creates."""
+        builder = dooray.TemplateBuilder()\
+            .set_template_name("Original")\
+            .add_tag_id("tag-1")
+
+        template1 = builder.create()
+        template1.template_name = "Mutated"
+        template1.tag_ids.append("tag-extra")
+
+        template2 = builder.create()
+
+        self.assertEqual(template2.template_name, "Original")
+        self.assertEqual(template2.to_json_dict()["tagIds"], ["tag-1"])

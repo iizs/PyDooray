@@ -1,3 +1,5 @@
+import copy
+
 import requests
 
 
@@ -135,5 +137,8 @@ class MessengerHookAttachments:
     def create(self):
         """
         Create a list of attachments.
+
+        Returns a deep copy of the internal state, allowing the builder
+        to be reused as a template for creating multiple similar attachments.
         """
-        return self._attachments
+        return copy.deepcopy(self._attachments)

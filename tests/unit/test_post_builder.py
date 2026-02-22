@@ -135,3 +135,45 @@ class TestPostBuilder(unittest.TestCase):
         self.assertNotIn("priority", d)
         self.assertNotIn("version", d)
         self.assertNotIn("parentPostId", d)
+
+    def test_create_returns_independent_copy(self):
+        """create() returns a deep copy; builder state is not shared."""
+        builder = dooray.PostBuilder()\
+            .set_subject("Template")\
+            .set_body("Body")\
+            .add_to_member("member-1")\
+            .add_tag_id("tag-1")
+
+        post1 = builder.create()
+        post2 = builder.create()
+
+        self.assertIsNot(post1, post2)
+        self.assertEqual(post1.to_json_dict(), post2.to_json_dict())
+
+    def test_create_copy_is_mutation_safe(self):
+        """Mutating a created object does not affect subsequent creates."""
+        builder = dooray.PostBuilder()\
+            .set_subject("Original")\
+            .add_tag_id("tag-1")
+
+        post1 = builder.create()
+        post1.subject = "Mutated"
+        post1.tag_ids.append("tag-extra")
+
+        post2 = builder.create()
+
+        self.assertEqual(post2.subject, "Original")
+        self.assertEqual(post2.to_json_dict()["tagIds"], ["tag-1"])
+
+    def test_builder_reuse_as_template(self):
+        """Builder can produce multiple variants from a shared base."""
+        base = dooray.PostBuilder()\
+            .set_body("Shared body")\
+            .add_to_member("member-1")
+
+        post_a = base.set_subject("Post A").create()
+        post_b = base.set_subject("Post B").create()
+
+        self.assertEqual(post_a.to_json_dict()["subject"], "Post A")
+        self.assertEqual(post_b.to_json_dict()["subject"], "Post B")
+        self.assertIsNot(post_a, post_b)

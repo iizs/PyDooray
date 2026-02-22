@@ -32,7 +32,7 @@ PostBuilder()
 
 #### `create() -> WritePost`
 
-Returns the internal `WritePost` object. This is the final step of the builder chain.
+Returns a **deep copy** of the internal `WritePost` object. The builder retains its state, allowing reuse as a template for creating multiple similar objects. This is the final step of the builder chain.
 
 #### `set_subject(subject: str) -> PostBuilder`
 
@@ -119,7 +119,7 @@ TemplateBuilder()
 
 #### `create() -> WriteTemplate`
 
-Returns the internal `WriteTemplate` object. This is the final step of the builder chain.
+Returns a **deep copy** of the internal `WriteTemplate` object. The builder retains its state, allowing reuse as a template for creating multiple similar objects. This is the final step of the builder chain.
 
 #### `set_template_name(template_name: str) -> TemplateBuilder`
 
@@ -202,6 +202,6 @@ Builder (fluent API) → WriteObject (data container) → to_json_dict() (JSON-s
 ```
 
 1. Builder methods set attributes on the internal WriteObject
-2. `create()` returns the WriteObject
+2. `create()` returns a **deep copy** of the WriteObject (builder state is preserved for reuse)
 3. API methods call `write_object.to_json_dict()` to serialize for the HTTP request body
 4. Only non-None attributes with `hasattr` checks are included in the JSON output
