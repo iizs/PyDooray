@@ -146,7 +146,7 @@ Constructs an attachment dict from non-None parameters. Returns `None` if all pa
 create() -> list[dict]
 ```
 
-Returns the accumulated list of attachment dicts.
+Returns a **deep copy** of the accumulated list of attachment dicts. The builder retains its state, allowing reuse as a template for creating multiple similar attachments.
 
 ---
 

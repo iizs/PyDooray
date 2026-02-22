@@ -154,13 +154,11 @@ updated = dooray.PostBuilder.from_read_post(existing)\
 d.project.update_post(project_id, post_id, updated)
 ```
 
-### 6.3 Builder Reusability
+### 6.3 Builder Reusability — ✅ Resolved
 
-**Current state:** After calling `create()`, the builder's internal state is returned directly. Calling `create()` again returns the same mutated object — there's no copy protection.
+> **Resolved in:** `99cb954 feat: return deep copy from builder create() for reusability`
 
-**Proposed improvement:**
-- `create()` should return a **copy** of the internal state, allowing the builder to be reused as a template
-- This enables patterns like creating multiple similar posts from one builder
+All builder classes (`PostBuilder`, `TemplateBuilder`, `MessengerHookAttachments`) now return `copy.deepcopy()` from `create()`, allowing builder reuse as a template for creating multiple similar objects.
 
 ---
 
@@ -285,7 +283,7 @@ Add `to_dict()` method on all read models, returning a plain `dict` with snake_c
 | 4.1 | Pagination | Auto-pagination iterator | Library Enhancement | P1 | No (additive) |
 | 6.1 | Builder | Validation on `create()` | Library Enhancement | P2 | No |
 | 6.2 | Builder | `from_read_post()` factory | Library Enhancement | P2 | No (additive) |
-| 6.3 | Builder | Builder copy on `create()` | Library Enhancement | P2 | Subtle |
+| 6.3 | Builder | ~~Builder copy on `create()`~~ | ✅ Resolved | — | — |
 | 7.1 | Types | Type annotations on public API | Library Enhancement | P2 | No |
 | 7.2 | Types | snake_case attribute normalization | Library Enhancement | P3 | Yes |
 | 8.1 | Convenience | `datetime` parameter support | Library Enhancement | P2 | No |
